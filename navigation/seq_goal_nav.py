@@ -81,7 +81,7 @@ robot_pose = [None, INITIAL]
 #----------
 InitialPosePublisher = rospy.Publisher('initialpose', PoseWithCovarianceStamped, queue_size = 100)
 
-for i in xrange(10):
+for i in range(10):
     SendInitialPose(InitialPosePublisher, INITIAL, rospy.Time.now())
     rospy.sleep(0.1)
     
