@@ -3,14 +3,14 @@
 
 import rospy
 
-# Brings in the SimpleActionClient
 import actionlib
-# Brings in the .action file and messages used by the move base action
+from actionlib_msgs.msg import GoalStatus
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 
 from geometry_msgs.msg import PoseWithCovarianceStamped, PoseStamped
-from tf.transformations import euler_from_quaternion, quaternion_from_euler
+from geometry_msgs.msg import Pose, Point, Quaternion
 
+from tf.transformations import quaternion_from_euler
 
 def SendInitialPose(InitialPosePublisher, initial_pose):
     # goal: [x, y, yaw]
@@ -28,34 +28,72 @@ def SendInitialPose(InitialPosePublisher, initial_pose):
     InitialPoseMsg.pose.pose.orientation.w = quaternion[3]
     InitialPosePublisher.publish(InitialPoseMsg)
 
+def active_cb():
+    rospy.loginfo("Goal pose is now being processed by the Move_Base Action Server...")
+
+def feedback_cb(feedback):
+    #To print current pose at each feedback:
+    #rospy.loginfo("Feedback for goal pose: "+str(feedback))
+    return
+
+def done_cb(status, result):
+    # Reference for terminal status values: http://docs.ros.org/diamondback/api/actionlib_msgs/html/msg/GoalStatus.html
+    if status == GoalStatus.PREEMPTED:
+        rospy.loginfo("Goal pose received a cancel request after it started executing, completed execution!")
+
+    if status == GoalStatus.SUCCEEDED:
+        rospy.loginfo("Goal pose reached")
+        multiple_goals = False
+        if multiple_goals:
+            # TODO implement for multiple goals
+            # should make a call to client's send goal function
+            print("TODO -- doing nothing")
+        else:
+            rospy.loginfo("Final goal pose reached!")
+            return
+            
+    if status == GoalStatus.ABORTED:
+        rospy.loginfo("Goal pose  was aborted by the Action Server")
+        rospy.signal_shutdown("Goal pose aborted, shutting down!")
+        return
+
+    if status == GoalStatus.REJECTED:
+        rospy.loginfo("Goal pose has been rejected by the Action Server")
+        rospy.signal_shutdown("Goal pose rejected, shutting down!")
+        return
+
+    if status == GoalStatus.RECALLED:
+        rospy.loginfo("Goal pose received a cancel request before it started executing, successfully cancelled!")
+
+
 def movebase_client():
 
-   # Create an action client called "move_base" with action definition file "MoveBaseAction"
+    # Create an action client called "move_base" with action definition file "MoveBaseAction"
     client = actionlib.SimpleActionClient('move_base',MoveBaseAction)
  
-   # Waits until the action server has started up and started listening for goals.
+    # Waits until the action server has started up and started listening for goals.
     client.wait_for_server()
 
-   # Creates a new goal with the MoveBaseGoal constructor
+    # Creates a new goal with the MoveBaseGoal constructor
     goal = MoveBaseGoal()
     goal.target_pose.header.frame_id = "map"
     goal.target_pose.header.stamp = rospy.Time.now()
-   # Move 0.5 meters forward along the x axis of the "map" coordinate frame 
-    goal.target_pose.pose.position.x = -5
-    goal.target_pose.pose.position.y = 3.3
-   # No rotation of the mobile base frame w.r.t. map frame
+    # Move 0.5 meters forward along the x axis of the "map" coordinate frame 
+    goal.target_pose.pose.position.x = -4.5
+    goal.target_pose.pose.position.y = -1
+    # No rotation of the mobile base frame w.r.t. map frame
     goal.target_pose.pose.orientation.w = 1.0
 
-   # Sends the goal to the action server.
-    client.send_goal(goal)
-   # Waits for the server to finish performing the action.
+    # Sends the goal to the action server.
+    client.send_goal(goal, done_cb, active_cb, feedback_cb)
+    # Waits for the server to finish performing the action.
     wait = client.wait_for_result()
-   # If the result doesn't arrive, assume the Server is not available
+    # If the result doesn't arrive, assume the Server is not available
     if not wait:
         rospy.logerr("Action server not available!")
         rospy.signal_shutdown("Action server not available!")
     else:
-    # Result of executing the action
+        # Result of executing the action
         return client.get_result()   
 
 # If the python node is executed as main process (sourced directly)
