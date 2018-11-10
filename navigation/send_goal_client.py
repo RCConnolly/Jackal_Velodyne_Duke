@@ -12,6 +12,20 @@ from geometry_msgs.msg import Pose, Point, Quaternion
 
 from tf.transformations import quaternion_from_euler
 
+def createMoveBaseGoal(x,y,yaw):
+    goal = MoveBaseGoal()
+    goal.target_pose.pose.position.x = x
+    goal.target_pose.pose.position.y = y
+    goal.target_pose.pose.position.z = 0
+
+    quaternion = quaternion_from_euler(0, 0, yaw)
+    goal.target_pose.pose.orientation.x = quaternion[0]
+    goal.target_pose.pose.orientation.y = quaternion[1]
+    goal.target_pose.pose.orientation.z = quaternion[2]
+    goal.target_pose.pose.orientation.w = quaternion[3]
+
+    return goal
+
 def SendInitialPose(InitialPosePublisher, initial_pose):
     # goal: [x, y, yaw]
     InitialPoseMsg = PoseWithCovarianceStamped()
@@ -66,7 +80,7 @@ def done_cb(status, result):
         rospy.loginfo("Goal pose received a cancel request before it started executing, successfully cancelled!")
 
 
-def movebase_client():
+def movebase_client(goal):
 
     # Create an action client called "move_base" with action definition file "MoveBaseAction"
     client = actionlib.SimpleActionClient('move_base',MoveBaseAction)
@@ -75,14 +89,8 @@ def movebase_client():
     client.wait_for_server()
 
     # Creates a new goal with the MoveBaseGoal constructor
-    goal = MoveBaseGoal()
     goal.target_pose.header.frame_id = "map"
     goal.target_pose.header.stamp = rospy.Time.now()
-    # Move 0.5 meters forward along the x axis of the "map" coordinate frame 
-    goal.target_pose.pose.position.x = -4.5
-    goal.target_pose.pose.position.y = -1
-    # No rotation of the mobile base frame w.r.t. map frame
-    goal.target_pose.pose.orientation.w = 1.0
 
     # Sends the goal to the action server.
     client.send_goal(goal, done_cb, active_cb, feedback_cb)
@@ -106,9 +114,9 @@ if __name__ == '__main__':
         for i in range(10):
             SendInitialPose(InitialPosePublisher, initial)
             rospy.sleep(0.1)
-        # goal = [-5, 3.3, 0]
-        result = movebase_client()
+        result = movebase_client(createMoveBaseGoal(-4,-1,3.1))
         if result:
             rospy.loginfo("Goal execution done!")
+        
     except rospy.ROSInterruptException:
         rospy.loginfo("Navigation test finished.")
