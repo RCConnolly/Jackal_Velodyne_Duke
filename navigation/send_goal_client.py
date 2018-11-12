@@ -141,7 +141,7 @@ if __name__ == '__main__':
             rospy.loginfo("Goal execution done!")
 
         closest_obj_angle = getNearestObjectAngle()
-        turn_goal = createMoveBaseGoal(0,0,closest_obj_angle, "base_link")
+        turn_goal = createMoveBaseGoal(0,0,closest_obj_angle, "front_laser")
         turn_res = movebase_client(turn_goal)
         if turn_res:
             rospy.loginfo("Successfully turned toward wall!")
