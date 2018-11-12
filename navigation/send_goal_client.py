@@ -10,9 +10,29 @@ from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from geometry_msgs.msg import PoseWithCovarianceStamped, PoseStamped
 from geometry_msgs.msg import Pose, Point, Quaternion
 
+from sensor_msgs.msg import LaserScan
+
 from tf.transformations import quaternion_from_euler
 
-def createMoveBaseGoal(x,y,yaw):
+def getNearestObjectAngle():
+    # returns the angle in sensor's frame to nearest object
+    try:
+        msg = rospy.wait_for_message('/front/scan', LaserScan, 10)
+    except rospy.ROSException:
+        rospy.loginfo("Timeout exceeded waiting for laser scan")
+
+    if len(msg.ranges) < 1:
+        return 0
+
+    min_val = msg.ranges[0]
+    for index, value in enumerate(msg.ranges):
+        if value < min_val:
+            min_val = value
+            angle = msg.angle_min + (msg.angle_increment*index)
+
+    return angle
+
+def createMoveBaseGoal(x,y,yaw,frame):
     goal = MoveBaseGoal()
     goal.target_pose.pose.position.x = x
     goal.target_pose.pose.position.y = y
@@ -23,6 +43,9 @@ def createMoveBaseGoal(x,y,yaw):
     goal.target_pose.pose.orientation.y = quaternion[1]
     goal.target_pose.pose.orientation.z = quaternion[2]
     goal.target_pose.pose.orientation.w = quaternion[3]
+
+    goal.target_pose.header.frame_id = frame
+
 
     return goal
 
@@ -89,7 +112,6 @@ def movebase_client(goal):
     client.wait_for_server()
 
     # Creates a new goal with the MoveBaseGoal constructor
-    goal.target_pose.header.frame_id = "map"
     goal.target_pose.header.stamp = rospy.Time.now()
 
     # Sends the goal to the action server.
@@ -114,9 +136,15 @@ if __name__ == '__main__':
         for i in range(10):
             SendInitialPose(InitialPosePublisher, initial)
             rospy.sleep(0.1)
-        result = movebase_client(createMoveBaseGoal(-4,-1,3.1))
+        result = movebase_client(createMoveBaseGoal(-4,-1,3.1, "map"))
         if result:
             rospy.loginfo("Goal execution done!")
-        
+
+        closest_obj_angle = getNearestObjectAngle()
+        turn_goal = createMoveBaseGoal(0,0,closest_obj_angle, "base_link")
+        turn_res = movebase_client(turn_goal)
+        if turn_res:
+            rospy.loginfo("Successfully turned toward wall!")
+
     except rospy.ROSInterruptException:
         rospy.loginfo("Navigation test finished.")
