@@ -1,54 +1,14 @@
 #!/usr/bin/env python
 # license removed for brevity
-
 import rospy
 
 import actionlib
 from actionlib_msgs.msg import GoalStatus
-from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
-
+from move_base_msgs.msg import MoveBaseAction
+from nav_module import findNearestObject, createMoveBaseGoal
+from odom_drive_to_wall import DriveForward
 from geometry_msgs.msg import PoseWithCovarianceStamped
-# from geometry_msgs.msg import Pose, Point, Quaternion
-
-from sensor_msgs.msg import LaserScan
-
 from tf.transformations import quaternion_from_euler
-
-
-def getNearestObjectAngle():
-    # returns the angle in sensor's frame to nearest object
-    try:
-        msg = rospy.wait_for_message('/front/scan', LaserScan, 10)
-    except rospy.ROSException:
-        rospy.loginfo("Timeout exceeded waiting for laser scan")
-
-    if len(msg.ranges) < 1:
-        return 0
-
-    min_val = msg.ranges[0]
-    for index, value in enumerate(msg.ranges):
-        if value < min_val:
-            min_val = value
-            angle = msg.angle_min + (msg.angle_increment*index)
-
-    return angle
-
-
-def createMoveBaseGoal(x, y, yaw, frame):
-    goal = MoveBaseGoal()
-    goal.target_pose.pose.position.x = x
-    goal.target_pose.pose.position.y = y
-    goal.target_pose.pose.position.z = 0
-
-    quaternion = quaternion_from_euler(0, 0, yaw)
-    goal.target_pose.pose.orientation.x = quaternion[0]
-    goal.target_pose.pose.orientation.y = quaternion[1]
-    goal.target_pose.pose.orientation.z = quaternion[2]
-    goal.target_pose.pose.orientation.w = quaternion[3]
-
-    goal.target_pose.header.frame_id = frame
-
-    return goal
 
 
 def SendInitialPose(InitialPosePublisher, initial_pose):
@@ -135,22 +95,36 @@ def movebase_client(goal):
 # If the python node is executed as main process (sourced directly)
 if __name__ == '__main__':
     try:
-       # Initializes a rospy node to let the SimpleActionClient publish and subscribe
+        # Initializes a rospy node to let the SimpleActionClient publish and subscribe
         rospy.init_node('movebase_client_py')
+        drive_f = DriveForward()
+
+        # Set initial pose for amcl
         initial = [0, 0, 0]
         InitialPosePublisher = rospy.Publisher('initialpose', PoseWithCovarianceStamped, queue_size=100)
         for i in range(10):
             SendInitialPose(InitialPosePublisher, initial)
             rospy.sleep(0.1)
+
+        # Move to a target location near wall
         result = movebase_client(createMoveBaseGoal(-4, -1, 3.1, "map"))
         if result:
             rospy.loginfo("Goal execution done!")
 
-        closest_obj_angle = getNearestObjectAngle()
-        turn_goal = createMoveBaseGoal(0, 0, closest_obj_angle, "front_laser")
+        # Rotate toward wall
+        (obj_distance, obj_angle) = findNearestObject()
+        turn_goal = createMoveBaseGoal(0, 0, obj_angle, "front_laser")
         turn_res = movebase_client(turn_goal)
         if turn_res:
             rospy.loginfo("Successfully turned toward wall!")
+
+        # Drive to wall
+        wall_separation = 0.012
+        dist_to_robo_front = 0.21
+        laser_range_acc = 0.03
+        goal_distance = (obj_distance - wall_separation -
+                         dist_to_robo_front - laser_range_acc)
+        drive_f.move(goal_distance)
 
     except rospy.ROSInterruptException:
         rospy.loginfo("Navigation test finished.")
