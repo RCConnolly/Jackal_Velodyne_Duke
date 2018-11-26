@@ -2,7 +2,32 @@ import rospy
 
 import actionlib
 from actionlib_msgs.msg import GoalStatus
-from move_base_msgs.msg import MoveBaseAction
+from move_base_msgs.msg import MoveBaseGoal, MoveBaseAction
+from tf.transformations import quaternion_from_euler
+
+
+class Goal2D:
+    def __init__(self, x=0.0, y=0.0, yaw=0.0, frame='base_link'):
+        self.x = x
+        self.y = y
+        self.yaw = yaw
+        self.frame = frame
+
+    def to_move_base(self):
+        goal = MoveBaseGoal()
+        goal.target_pose.pose.position.x = self.x
+        goal.target_pose.pose.position.y = self.y
+        goal.target_pose.pose.position.z = 0
+
+        quaternion = quaternion_from_euler(0, 0, self.yaw)
+        goal.target_pose.pose.orientation.x = quaternion[0]
+        goal.target_pose.pose.orientation.y = quaternion[1]
+        goal.target_pose.pose.orientation.z = quaternion[2]
+        goal.target_pose.pose.orientation.w = quaternion[3]
+
+        goal.target_pose.header.frame_id = self.frame
+
+        return goal
 
 
 class MoveBaseClient:
@@ -47,19 +72,14 @@ class MoveBaseClient:
 
     def send_goal(self, goal):
 
-        # Create an action client called "move_base" with action definition file "MoveBaseAction"
         client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
-
-        # Waits until the action server has started up and started listening for goals.
         client.wait_for_server()
 
-        # Creates a new goal with the MoveBaseGoal constructor
         goal.target_pose.header.stamp = rospy.Time.now()
 
-        # Sends the goal to the action server.
         client.send_goal(goal, self.done_cb, self.active_cb, self.feedback_cb)
-        # Waits for the server to finish performing the action.
         wait = client.wait_for_result()
+
         # If the result doesn't arrive, assume the Server is not available
         if not wait:
             rospy.logerr("Action server not available!")
