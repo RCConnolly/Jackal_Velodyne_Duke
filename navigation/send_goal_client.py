@@ -3,7 +3,7 @@
 import rospy
 
 from nav_module import findNearestObject, createMoveBaseGoal
-from odom_drive_to_wall import DriveForward
+from odom_drive_to_wall import DriveStraight
 from move_base_client import MoveBaseClient
 from geometry_msgs.msg import PoseWithCovarianceStamped
 from tf.transformations import quaternion_from_euler
@@ -26,15 +26,13 @@ def SendInitialPose(InitialPosePublisher, initial_pose):
     InitialPosePublisher.publish(InitialPoseMsg)
 
 
-
-
 # If the python node is executed as main process (sourced directly)
 if __name__ == '__main__':
     try:
         # Initializes a rospy node to let the SimpleActionClient publish and subscribe
         rospy.init_node('movebase_client_py')
         mb_client = MoveBaseClient()
-        drive_f = DriveForward()
+        driver = DriveStraight()
 
         # Set initial pose for amcl
         initial = [0, 0, 0]
@@ -61,7 +59,12 @@ if __name__ == '__main__':
         laser_range_acc = 0.03
         goal_distance = (obj_distance - wall_separation -
                          dist_to_robo_front - laser_range_acc)
-        drive_f.move(goal_distance)
+        driver.move(goal_distance)
+
+        # Reverse 0.5 m from wall
+        rospy.sleep(2)
+        rospy.loginfo("Waiting before reversing")
+        driver.move(0.5, -0.2)
 
     except rospy.ROSInterruptException:
         rospy.loginfo("Navigation test finished.")

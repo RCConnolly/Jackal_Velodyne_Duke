@@ -2,9 +2,8 @@
 
 """ odom_drive_to_wall.py
 
-    Drives a forward to a specified goal distance determined
-    by the distance to a nearest object measured by a laser
-    scanner.
+    Drives a straight to a specified goal distance measured
+    by the /odom frame.
 """
 
 import rospy
@@ -13,7 +12,7 @@ import tf
 from math import sqrt, pow
 
 
-class DriveForward:
+class DriveStraight:
     def __init__(self):
 
         # Publisher to control the robot's speed
@@ -28,7 +27,10 @@ class DriveForward:
         self.odom_frame = '/odom'
         self.base_frame = '/base_link'
         
-    def move(self, dist=1.0, speed=0.15):
+    def move(self, goal_distance, linear_speed=0.15):
+
+        rospy.loginfo('Moving a distance of {} at speed {}'
+                      .format(goal_distance, linear_speed))
 
         # Controls looping rate with rospy.sleep
         rate = 20
@@ -37,14 +39,9 @@ class DriveForward:
         # Set the forward linear speed to 0.15 meters per second
         # Min/max velocity for jackal listed here:
         # https://github.com/jackal/jackal/blob/5eb9356c891a4168cfa98b4b42a55561b245ba81/jackal_navigation/params/base_local_planner_params.yaml
-        linear_speed = speed
-        
-        # Set the travel distance in meters
-        goal_distance = dist
-        
         move_cmd = Twist()
         move_cmd.linear.x = linear_speed
-            
+                    
         # Get the starting position values
         position = Point()
         position = self.get_odom_pos()
@@ -56,7 +53,7 @@ class DriveForward:
             
         # Enter the loop to move along a side
         while distance < goal_distance and not rospy.is_shutdown():
-            # Publish the Twist message and sleep 1 cycle         
+            # Publish the Twist message and sleep 1 cycle
             self.cmd_vel.publish(move_cmd)
             
             r.sleep()
@@ -69,7 +66,7 @@ class DriveForward:
                             pow((position.y - y_start), 2))
 
         if(distance >= goal_distance):
-            rospy.loginfo('Moved goal distance!')
+            rospy.loginfo('Finished moving')
             
         # Stop the robot
         self.cmd_vel.publish(Twist())
