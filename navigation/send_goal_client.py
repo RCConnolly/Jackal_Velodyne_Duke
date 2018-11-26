@@ -62,8 +62,8 @@ if __name__ == '__main__':
         driver.move(goal_distance)
 
         # Reverse 0.5 m from wall
+        rospy.loginfo("TODO - Perform listen/speak task... for now pausing 2s")
         rospy.sleep(2)
-        rospy.loginfo("Waiting before reversing")
         driver.move(0.5, -0.2)
 
     except rospy.ROSInterruptException:
