@@ -20,7 +20,7 @@ This markdown contains the initial steps we took to set up the Jackal, which inv
 
 * Step 1. Read [this](https://www.clearpathrobotics.com/assets/guides/jackal/network.html) from Clearpath first.
 
-  Connect Jacakal by wire to your LAN. `ssh` into the machine and connected your local Wifi via `wcid-curses`. Make sure _the automatic connection_ is checked in the configuration of Wifi signal. We also choose to set `static_IP` which works fine for a single Jackal (but not so well when multiple Jackal appears). We also enabled DHCP. 
+  Connect Jacakal by wire to your LAN. `ssh` into the machine and connected your local Wifi via `wicd-curses`. Make sure _the automatic connection_ is checked in the configuration of Wifi signal. We also choose to set `static_IP` which works fine for a single Jackal (but not so well when multiple Jackal appears). We also enabled DHCP. 
 
   Unplug the wire and reboot Jackal to make sure that Jackal is connected to your preferred Wifi. We verify this by `ping`  and `ssh` into Jackal.
 
