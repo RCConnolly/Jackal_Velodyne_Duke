@@ -2,9 +2,9 @@
 # license removed for brevity
 import rospy
 
-from nav_module import findNearestObject
+from nav_module import findNearestObject, Goal2D
 from odom_drive_to_wall import DriveStraight
-from move_base_client import MoveBaseClient, Goal2D
+from move_base_client import MoveBaseClient
 from geometry_msgs.msg import PoseWithCovarianceStamped
 from tf.transformations import quaternion_from_euler
 
@@ -68,9 +68,11 @@ if __name__ == '__main__':
                              dist_to_robo_front - laser_range_acc)
             driver.move(goal_distance)
 
-            # Reverse 0.5 m from wall
+            # Perform task
             rospy.loginfo("TODO - Perform listen/speak task... for now pausing 2s")
             rospy.sleep(2)
+
+            # Reverse 0.5 m from wall
             driver.move(0.5, -0.2)
             
         rospy.loginfo('Finished goal sequence')

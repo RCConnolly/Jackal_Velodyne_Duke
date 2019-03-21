@@ -1,38 +1,17 @@
 import rospy
+import sys
 
 import actionlib
+import std_msgs
 from actionlib_msgs.msg import GoalStatus
-from move_base_msgs.msg import MoveBaseGoal, MoveBaseAction
-from tf.transformations import quaternion_from_euler
-
-
-class Goal2D:
-    def __init__(self, x=0.0, y=0.0, yaw=0.0, frame='base_link'):
-        self.x = x
-        self.y = y
-        self.yaw = yaw
-        self.frame = frame
-
-    def to_move_base(self):
-        goal = MoveBaseGoal()
-        goal.target_pose.pose.position.x = self.x
-        goal.target_pose.pose.position.y = self.y
-        goal.target_pose.pose.position.z = 0
-
-        quaternion = quaternion_from_euler(0, 0, self.yaw)
-        goal.target_pose.pose.orientation.x = quaternion[0]
-        goal.target_pose.pose.orientation.y = quaternion[1]
-        goal.target_pose.pose.orientation.z = quaternion[2]
-        goal.target_pose.pose.orientation.w = quaternion[3]
-
-        goal.target_pose.header.frame_id = self.frame
-
-        return goal
+from move_base_msgs.msg import MoveBaseAction, MoveBaseActionGoal
 
 
 class MoveBaseClient:
-    def __init__(self):
-        self.multiple_goals = False
+    def __init__(self, ns, pub):
+        self.ns = ns
+        pub_topic = ns + '/result'
+        self.pub = rospy.Publisher(pub_topic, std_msgs.msg.Bool, queue_size=1)
 
     def active_cb(self):
         rospy.loginfo("Goal pose is now being processed by the Move_Base Action Server...")
@@ -48,13 +27,6 @@ class MoveBaseClient:
             rospy.loginfo("Goal pose received a cancel request after it started executing, completed execution!")
 
         if status == GoalStatus.SUCCEEDED:
-            rospy.loginfo("Goal pose reached")
-            if self.multiple_goals:
-                # TODO implement for multiple goals
-                # should make a call to client's send goal function
-                print("TODO -- doing nothing")
-            else:
-                rospy.loginfo("Final goal pose reached!")
             return
 
         if status == GoalStatus.ABORTED:
@@ -72,18 +44,38 @@ class MoveBaseClient:
 
     def send_goal(self, goal):
 
-        client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
+        mb_ns = self.ns + '/move_base'
+        client = actionlib.SimpleActionClient(mb_ns, MoveBaseAction)
         client.wait_for_server()
 
         goal.target_pose.header.stamp = rospy.Time.now()
 
         client.send_goal(goal, self.done_cb, self.active_cb, self.feedback_cb)
-        wait = client.wait_for_result()
+        reached_goal = client.wait_for_result()
+        self.pub.publish(reached_goal)
 
         # If the result doesn't arrive, assume the Server is not available
-        if not wait:
+        if not reached_goal:
             rospy.logerr("Action server not available!")
             rospy.signal_shutdown("Action server not available!")
         else:
             # Result of executing the action
             return client.get_result()
+
+
+if __name__ == '__main__':
+    try:
+        ns = sys.argv[1]
+        node_name = ns + '_move_base_client'
+        rospy.init_node(node_name)
+
+        mb_client = MoveBaseClient(ns)
+        topic_name = ns + '/goal'
+        rospy.Subscriber(topic_name, MoveBaseActionGoal,
+                         callback=mb_client.send_goal)
+        rospy.spin()
+        
+    except rospy.ROSInterruptException:
+        print(ns + " MoveBaseClient interrupted", file=sys.stderr)
+        
+
