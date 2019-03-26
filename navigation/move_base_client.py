@@ -2,16 +2,15 @@ import rospy
 import sys
 
 import actionlib
-import std_msgs
 from actionlib_msgs.msg import GoalStatus
-from move_base_msgs.msg import MoveBaseAction, MoveBaseActionGoal
+from move_base_msgs.msg import MoveBaseAction, MoveBaseActionGoal, MoveBaseActionResult
 
 
 class MoveBaseClient:
     def __init__(self, ns, pub):
         self.ns = ns
-        pub_topic = ns + '/result'
-        self.pub = rospy.Publisher(pub_topic, std_msgs.msg.Bool, queue_size=1)
+        res_topic = ns + '/result'
+        self.pub = rospy.Publisher(res_topic, MoveBaseActionResult, queue_size=1)
 
     def active_cb(self):
         rospy.loginfo("Goal pose is now being processed by the Move_Base Action Server...")
@@ -44,15 +43,13 @@ class MoveBaseClient:
 
     def send_goal(self, goal):
 
-        mb_ns = self.ns + '/move_base'
-        client = actionlib.SimpleActionClient(mb_ns, MoveBaseAction)
+        client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
         client.wait_for_server()
 
         goal.target_pose.header.stamp = rospy.Time.now()
 
         client.send_goal(goal, self.done_cb, self.active_cb, self.feedback_cb)
         reached_goal = client.wait_for_result()
-        self.pub.publish(reached_goal)
 
         # If the result doesn't arrive, assume the Server is not available
         if not reached_goal:
@@ -60,8 +57,9 @@ class MoveBaseClient:
             rospy.signal_shutdown("Action server not available!")
         else:
             # Result of executing the action
-            return client.get_result()
-
+            res = client.get_result()
+            self.pub.publish(res)
+            return res
 
 if __name__ == '__main__':
     try:
@@ -70,12 +68,11 @@ if __name__ == '__main__':
         rospy.init_node(node_name)
 
         mb_client = MoveBaseClient(ns)
-        topic_name = ns + '/goal'
-        rospy.Subscriber(topic_name, MoveBaseActionGoal,
+        goal_name = ns + '/goal'
+        rospy.Subscriber(goal_name, MoveBaseActionGoal,
                          callback=mb_client.send_goal)
         rospy.spin()
         
     except rospy.ROSInterruptException:
         print(ns + " MoveBaseClient interrupted", file=sys.stderr)
-        
 
