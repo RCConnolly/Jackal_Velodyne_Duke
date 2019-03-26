@@ -1,20 +1,14 @@
 import rospy
-import sys
 
 import actionlib
 from actionlib_msgs.msg import GoalStatus
-from odom_drive_to_wall import DriveStraight
-from move_base_msgs.msg import MoveBaseAction, MoveBaseActionGoal, MoveBaseActionResult
+from move_base_msgs.msg import MoveBaseAction, MoveBaseActionGoal
 
 
 class MoveBaseClient:
-    def __init__(self, ns, pub):
-        self.ns = ns
-        res_topic = ns + '/result'
-        self.pub = rospy.Publisher(res_topic, MoveBaseActionResult, queue_size=1)
-        self.driver = DriveStraight()
-
-
+    def __init__(self):
+        return
+    
     def active_cb(self):
         rospy.loginfo("Goal pose is now being processed by the Move_Base Action Server...")
 
@@ -60,22 +54,6 @@ class MoveBaseClient:
             rospy.signal_shutdown("Action server not available!")
         else:
             # Result of executing the action
-            res = client.get_result()
-            self.pub.publish(res)
-            return res
+            return client.get_result()
 
-if __name__ == '__main__':
-    try:
-        ns = sys.argv[1]
-        node_name = ns + '_move_base_client'
-        rospy.init_node(node_name)
-
-        mb_client = MoveBaseClient(ns)
-        goal_name = ns + '/goal'
-        rospy.Subscriber(goal_name, MoveBaseActionGoal,
-                         callback=mb_client.send_goal)
-        rospy.spin()
-        
-    except rospy.ROSInterruptException:
-        print(ns + " MoveBaseClient interrupted", file=sys.stderr)
 
