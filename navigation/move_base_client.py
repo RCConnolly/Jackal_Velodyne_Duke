@@ -3,6 +3,7 @@ import sys
 
 import actionlib
 from actionlib_msgs.msg import GoalStatus
+from odom_drive_to_wall import DriveStraight
 from move_base_msgs.msg import MoveBaseAction, MoveBaseActionGoal, MoveBaseActionResult
 
 
@@ -11,6 +12,8 @@ class MoveBaseClient:
         self.ns = ns
         res_topic = ns + '/result'
         self.pub = rospy.Publisher(res_topic, MoveBaseActionResult, queue_size=1)
+        self.driver = DriveStraight()
+
 
     def active_cb(self):
         rospy.loginfo("Goal pose is now being processed by the Move_Base Action Server...")
