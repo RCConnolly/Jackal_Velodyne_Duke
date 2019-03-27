@@ -4,7 +4,7 @@ import rospy
 import sys
 from actionlib_msgs.msg import GoalStatus
 from move_base_client import MoveBaseClient
-from move_base_client import MoveBaseActionGoal, MoveBaseActionResult
+from move_base_msgs.msg import MoveBaseActionGoal, MoveBaseActionResult
 from odom_drive_to_wall import DriveStraight
 from nav_module import findNearestObject, Goal2D
 from geometry_msgs.msg import PoseWithCovarianceStamped
