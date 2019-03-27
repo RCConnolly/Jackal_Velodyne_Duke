@@ -1,11 +1,31 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 
 import rospy
 import sys
-from nav_module import findNearestObject, Goal2D
 from actionlib_msgs.msg import GoalStatus
-from move_base_client import MoveBaseClient, MoveBaseActionGoal, MoveBaseActionResult
+from move_base_client import MoveBaseClient
+from move_base_client import MoveBaseActionGoal, MoveBaseActionResult
 from odom_drive_to_wall import DriveStraight
+from nav_module import findNearestObject, Goal2D
+from geometry_msgs.msg import PoseWithCovarianceStamped
+from tf.transformations import quaternion_from_euler
+
+
+def SendInitialPose(InitialPosePublisher, initial_pose):
+    # goal: [x, y, yaw]
+    InitialPoseMsg = PoseWithCovarianceStamped()
+    # InitialPoseMsg.header.seq = 0
+    InitialPoseMsg.header.stamp = rospy.Time.now()
+    InitialPoseMsg.header.frame_id = 'map'
+    InitialPoseMsg.pose.pose.position.x = initial_pose[0]
+    InitialPoseMsg.pose.pose.position.y = initial_pose[1]
+    # InitialPoseMsg.pose.position.z = 0.0
+    quaternion = quaternion_from_euler(0, 0, initial_pose[2])
+    InitialPoseMsg.pose.pose.orientation.x = quaternion[0]
+    InitialPoseMsg.pose.pose.orientation.y = quaternion[1]
+    InitialPoseMsg.pose.pose.orientation.z = quaternion[2]
+    InitialPoseMsg.pose.pose.orientation.w = quaternion[3]
+    InitialPosePublisher.publish(InitialPoseMsg)
 
 
 class JackalGoalServer:
@@ -19,13 +39,15 @@ class JackalGoalServer:
         '''
         goal is of type MoveBaseActionGoal
         '''
-        mb_client = MoveBaseClient
-        driver = DriveStraight
+        mb_client = MoveBaseClient()
         
         # Move to a target location near wall
-        act_res = mb_client.send_goal(goal)
-        if act_res.status == GoalStatus.SUCCEEDED:
-            rospy.loginfo("Sucessfully reached target area")
+        move_res = mb_client.send_goal(goal)
+        if move_res.status == GoalStatus.SUCCEEDED:
+            rospy.loginfo("Sucessfully reached target area.")
+
+        '''
+        driver = DriveStraight()
 
         # Rotate toward wall
         (obj_distance, obj_angle) = findNearestObject()
@@ -44,22 +66,35 @@ class JackalGoalServer:
                          dist_buff)
         driver.move(goal_distance)
         rospy.loginfo("Drove toward nearest sample")
+        '''
 
-        self.pub.publish(act_res)
+        self.pub.publish(move_res)
 
-        
 
-        
 # If the python node is executed as main process (sourced directly)
 if __name__ == '__main__':
     try:
         # Initialize node
+        if(len(sys.argv) != 2):
+            rospy.logerr('Call format: jackal_goal_server.py <jackal_name>')
+
         ns = sys.argv[1]
         node_name = ns + '_goal_server'
         rospy.init_node(node_name)
 
-        # Subscribe to goal topic
+        # Set initial pose for amcl
+        initial = [0, 0, 0]
+        InitialPosePublisher = rospy.Publisher('initialpose',
+                                               PoseWithCovarianceStamped,
+                                               queue_size=100)
+        for i in range(10):
+            SendInitialPose(InitialPosePublisher, initial)
+            rospy.sleep(0.1)
+
+        # Create server
         goal_server = JackalGoalServer(ns)
+
+        # Subscribe to goal topic & relay to goal server
         goal_topic = ns + '/goal'
         rospy.Subscriber(goal_topic, MoveBaseActionGoal,
                          callback=goal_server.goal_callback)
