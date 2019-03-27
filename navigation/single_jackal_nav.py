@@ -17,7 +17,7 @@ if __name__ == '__main__':
         j1_name = sys.argv[1]
         j1_goal = j1_name + '/goal'
         j1_res = j1_name + '/result'
-        j1_goal_pub = rospy.Publisher(j1_goal, MoveBaseActionGoal)
+        j1_goal_pub = rospy.Publisher(j1_goal, MoveBaseGoal, queue_size=1)
 
         # Some test goals for simulation
         tst_right = Goal2D(-3.0, -.6, -PI/2, 'map')
@@ -33,7 +33,7 @@ if __name__ == '__main__':
         for i in range(num_goals):
             # Move to goal
             rospy.loginfo('Sending goal to  Jackal')
-            j1_goal_pub(Jackal1_goals[i].to_move_base())
+            j1_goal_pub.publish(Jackal1_goals[i].to_move_base())
 
             rospy.loginfo('Waiting for results from  Jackal')
             j1_res = rospy.wait_for_message(j1_res, MoveBaseActionResult)
@@ -51,4 +51,4 @@ if __name__ == '__main__':
         rospy.loginfo('Finished goal sequence.')
         
     except rospy.ROSInterruptException:
-        rospy.loginfo("ROS Interruption in multi_jackal_navigation")
+        rospy.loginfo("ROS Interruption in single_jackal_navigation")

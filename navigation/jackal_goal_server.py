@@ -4,7 +4,7 @@ import rospy
 import sys
 from actionlib_msgs.msg import GoalStatus
 from move_base_client import MoveBaseClient
-from move_base_msgs.msg import MoveBaseActionGoal, MoveBaseActionResult
+from move_base_msgs.msg import MoveBaseGoal, MoveBaseActionResult
 from odom_drive_to_wall import DriveStraight
 from nav_module import findNearestObject, Goal2D
 from geometry_msgs.msg import PoseWithCovarianceStamped
@@ -77,6 +77,7 @@ if __name__ == '__main__':
         # Initialize node
         if(len(sys.argv) != 2):
             rospy.logerr('Call format: jackal_goal_server.py <jackal_name>')
+            sys.exit()
 
         ns = sys.argv[1]
         node_name = ns + '_goal_server'
@@ -96,7 +97,7 @@ if __name__ == '__main__':
 
         # Subscribe to goal topic & relay to goal server
         goal_topic = ns + '/goal'
-        rospy.Subscriber(goal_topic, MoveBaseActionGoal,
+        rospy.Subscriber(goal_topic, MoveBaseGoal,
                          callback=goal_server.goal_callback)
 
         rospy.spin()
