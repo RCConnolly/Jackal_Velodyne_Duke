@@ -6,6 +6,7 @@ from nav_module import Goal2D
 from move_base_msgs.msg import MoveBaseGoal
 from move_base_msgs.msg import MoveBaseActionGoal, MoveBaseActionResult
 from actionlib_msgs.msg import GoalStatus
+from std_msgs.msg import Bool
 
 PI = 3.14
 
@@ -20,8 +21,8 @@ if __name__ == '__main__':
         j1_goal_pub = rospy.Publisher(j1_goal, MoveBaseGoal, queue_size=1)
 
         # Some test goals for simulation
-        tst_right = Goal2D(-3.0, -.6, -PI/2, 'map')
-        tst_left = Goal2D(-6.0, -2.2, PI/2, 'map')
+        tst_right = Goal2D(-3.0, -.8, PI/2, 'map')
+        tst_left = Goal2D(-6.0, -2.0, -PI/2, 'map')
         tst_up = Goal2D(-8.2, -1.0, 1.6, 'map')
         tst_left2 = Goal2D(-6.0, 1.5, 0.0, 'map')
 
@@ -30,17 +31,21 @@ if __name__ == '__main__':
         Jackal1_tasks = ['listen', 'speak']
         num_goals = len(Jackal1_goals)
 
+        rospy.loginfo('Pause while goal publisher becomes recognized...')
+        rospy.sleep(5)
+        rospy.loginfo('...finished pausing')
+
         for i in range(num_goals):
             # Move to goal
-            rospy.loginfo('Sending goal to  Jackal')
+            rospy.loginfo('Sending goal to Jackal')
             j1_goal_pub.publish(Jackal1_goals[i].to_move_base())
 
             rospy.loginfo('Waiting for results from  Jackal')
-            j1_res = rospy.wait_for_message(j1_res, MoveBaseActionResult)
+            j1_reached_goal = rospy.wait_for_message(j1_res,Bool)
 
             # Perform task
-            if((j1_res.status == GoalStatus.SUCCEEDED)):
-                print('Jackal1 task: {}'.format(Jackal1_goals[i]))
+            if(j1_reached_goal):
+                rospy.loginfo('Jackal1 task: {}'.format(Jackal1_tasks[i]))
                 rospy.sleep(3)
             else:
                 rospy.logerr('Unable to reach a target goal.')

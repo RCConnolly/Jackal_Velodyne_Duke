@@ -2,6 +2,7 @@
 
 import rospy
 import sys
+from std_msgs.msg import Bool
 from actionlib_msgs.msg import GoalStatus
 from move_base_client import MoveBaseClient
 from move_base_msgs.msg import MoveBaseGoal, MoveBaseActionResult
@@ -32,8 +33,7 @@ class JackalGoalServer:
     def __init__(self, ns):
         self.ns = ns
         res_topic = ns + '/result'
-        self.pub = rospy.Publisher(res_topic, MoveBaseActionResult,
-                                   queue_size=1)
+        self.pub = rospy.Publisher(res_topic, Bool, queue_size=1)
         
     def goal_callback(self, goal):
         '''
@@ -42,9 +42,11 @@ class JackalGoalServer:
         mb_client = MoveBaseClient()
         
         # Move to a target location near wall
-        move_res = mb_client.send_goal(goal)
-        if move_res.status == GoalStatus.SUCCEEDED:
+        reached_goal = mb_client.send_goal(goal)
+        if reached_goal:
             rospy.loginfo("Sucessfully reached target area.")
+        else:
+            rospy.logerr("{} unable to reach goal".format(self.ns))
 
         '''
         driver = DriveStraight()
@@ -68,7 +70,7 @@ class JackalGoalServer:
         rospy.loginfo("Drove toward nearest sample")
         '''
 
-        self.pub.publish(move_res)
+        self.pub.publish(reached_goal)
 
 
 # If the python node is executed as main process (sourced directly)

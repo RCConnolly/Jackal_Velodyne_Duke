@@ -2,7 +2,7 @@ import rospy
 
 import actionlib
 from actionlib_msgs.msg import GoalStatus
-from move_base_msgs.msg import MoveBaseAction, MoveBaseActionGoal
+from move_base_msgs.msg import MoveBaseAction
 
 
 class MoveBaseClient:
@@ -46,14 +46,10 @@ class MoveBaseClient:
         goal.target_pose.header.stamp = rospy.Time.now()
 
         client.send_goal(goal, self.done_cb, self.active_cb, self.feedback_cb)
-        reached_goal = client.wait_for_result()
+        client.wait_for_result()
 
-        # If the result doesn't arrive, assume the Server is not available
-        if not reached_goal:
-            rospy.logerr("Action server not available!")
-            rospy.signal_shutdown("Action server not available!")
-        else:
-            # Result of executing the action
-            return client.get_result()
-
+        goal_status = client.get_state()
+        reached_goal = goal_status == GoalStatus.SUCCEEDED
+        
+        return reached_goal
 
