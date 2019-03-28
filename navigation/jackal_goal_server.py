@@ -77,9 +77,19 @@ class JackalGoalServer:
 if __name__ == '__main__':
     try:
         # Initialize node
-        if(len(sys.argv) != 2):
-            print('Call syntax: jackal_goal_server.py <jackal_name>')
+        num_args = len(sys.argv)
+        if(num_args < 2):
+            print('Call syntax: jackal_goal_server.py <jackal_name> <x_init> <y_init> <yaw_init>')
             sys.exit()
+
+        if(num_args == 5):
+            x_init = sys.argv[3]
+            y_init = sys.argv[4]
+            yaw_init = sys.argv[5]
+        else:
+            x_init = 0
+            y_init = 0
+            yaw_init = 0
 
         ns = sys.argv[1]
         node_name = ns + '_goal_server'
@@ -87,7 +97,7 @@ if __name__ == '__main__':
         rospy.loginfo('Created {} node'.format(node_name))
 
         # Set initial pose for amcl
-        initial = [0, 0, 0]
+        initial = [x_init, y_init, yaw_init]
         rospy.loginfo('Setting initial pose to: {}'.format(initial))
         InitialPosePublisher = rospy.Publisher('initialpose',
                                                PoseWithCovarianceStamped,
