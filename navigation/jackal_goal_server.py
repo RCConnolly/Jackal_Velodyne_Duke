@@ -47,7 +47,7 @@ class JackalGoalServer:
             rospy.loginfo("Sucessfully reached target area.")
         else:
             rospy.logerr("{} unable to reach goal".format(self.ns))
-
+            self.pub.publish(False)
         '''
         driver = DriveStraight()
 
@@ -84,9 +84,11 @@ if __name__ == '__main__':
         ns = sys.argv[1]
         node_name = ns + '_goal_server'
         rospy.init_node(node_name)
+        rospy.loginfo('Created {} node'.format(node_name))
 
         # Set initial pose for amcl
         initial = [0, 0, 0]
+        rospy.loginfo('Setting initial pose to: {}'.format(initial))
         InitialPosePublisher = rospy.Publisher('initialpose',
                                                PoseWithCovarianceStamped,
                                                queue_size=100)
@@ -101,8 +103,8 @@ if __name__ == '__main__':
         goal_topic = ns + '/goal'
         rospy.Subscriber(goal_topic, MoveBaseGoal,
                          callback=goal_server.goal_callback)
-
+        rospy.loginfo('Subscribed to {}'.format(goal_topic))
         rospy.spin()
 
     except rospy.ROSInterruptException:
-        rospy.loginfo("Navigation test finished.")
+        rospy.loginfo("ROS interruption at node {}".format(node_name))
