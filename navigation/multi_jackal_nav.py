@@ -6,59 +6,88 @@ from nav_module import Goal2D
 from move_base_msgs.msg import MoveBaseGoal
 from move_base_msgs.msg import MoveBaseActionGoal, MoveBaseActionResult
 from actionlib_msgs.msg import GoalStatus
+from std_msgs.msg import Bool
+
+PI = 3.14
 
 
+class JackalNavigator:
+    def __init__(self, name):
+        self.name = name
+        self.pub = rospy.Publisher(name + '/goal', MoveBaseGoal, queue_size=1)
+        self.sub = rospy.Subscriber(name + '/res', Bool, self.resultCallback())
+        self.results = []
+        self.goals = []
+        self.tasks = []
+        self.finished_goals = 0
+
+    def resultCallback(self, res):
+        if(not res):
+            rospy.logerr('{} unable to reach a target goal.'.format(self.name))
+            rospy.signal_shutdown()
+        self.results.append(res)
+        self.finished_goals = self.finished_goals + 1
+        rospy.loginfo('{} reached goal'.format(self.name))
+
+    def addGoals(self, goals):
+        for goal in goals:
+            self.goals.append(goal)
+
+    def addTasks(self, tasks):
+        for task in tasks:
+            self.tasks.append(task)
+    
+        
 # If the python node is executed as main process (sourced directly)
 if __name__ == '__main__':
     try:
         rospy.init_node('multi_jackal_navigation')
 
-        j1_name = sys.argv[1]
-        j1_goal = j1_name + '/goal'
-        j1_res = j1_name + '/result'
-        j1_goal_pub = rospy.Publisher(j1_goal, MoveBaseActionGoal)
-
-        j2_name = sys.argv[2]
-        j2_goal = j2_name + '/goal'
-        j2_res = j2_name + '/result'
-        j2_goal_pub = rospy.Publisher(j2_goal, MoveBaseActionGoal)
+        jackals = []
+        for name in sys.argv[1:]:
+            jackals.append(JackalNavigator(name))
 
         # Some test goals for simulation
-        tst_right = Goal2D(-3.0, -.75, 3.14, 'map')
-        tst_left = Goal2D(-6.0, -2.0, 3.14, 'map')
+        tst_right = Goal2D(-3.0, -.8, PI/2, 'map')
+        tst_left = Goal2D(-6.0, -2.0, -PI/2, 'map')
         tst_up = Goal2D(-8.2, -1.0, 1.6, 'map')
         tst_left2 = Goal2D(-6.0, 1.5, 0.0, 'map')
 
-        # Jackal acoustic IM goals
-        Jackal1_goals = [tst_right, tst_left]
-        Jackal2_goals = [tst_up, tst_left2]
-        Jackal1_tasks = ['listen', 'speak']
-        Jackal2_tasks = ['speak', 'listen']
-        assert(len(Jackal1_goals) == len(Jackal2_goals))
-        num_goals = len(Jackal1_goals)
+        # Jackal acoustic IM goals and tasks
+        jackals[0].addGoals([tst_right, tst_left])
+        jackals[0].addTasks(['listen', 'speak'])
 
+        if(len(jackals) > 1):
+            jackals[1].addGoals([tst_up, tst_left2])
+            jackals[1].addTasks(['speak', 'listen'])
+        
+        rospy.loginfo('Pause while goal publisher becomes recognized...')
+        rospy.sleep(5)
+        rospy.loginfo('...finished pausing')
+
+        num_goals = len(jackals[0].goals)
         for i in range(num_goals):
+            
             # Move to goal
-            rospy.loginfo('Sending goals to each Jackal')
-            j1_goal_pub(Jackal1_goals[i].to_move_base())
-            j2_goal_pub(Jackal2_goals[i].to_move_base())
+            for jackal in jackals:
+                rospy.loginfo('Sending goal to {}'.format(jackal.name))
+                jackal.pub.publish(jackal.goals[i].to_move_base())
 
-            rospy.loginfo('Waiting for results from both Jackals')
-            j1_res = rospy.wait_for_message(j1_res, MoveBaseActionResult)
-            j2_res = rospy.wait_for_message(j2_res, MoveBaseActionResult)
+            # Wait for results
+            # TODO improve this implementation
+            rospy.loginfo('Waiting for results from Jackals')
+            for jackal in jackals:
+                while(jackal.finished_goals < i+1):
+                    continue
 
             # Perform task
-            if((j1_res.status == GoalStatus.SUCCEEDED) and
-               (j2_res.status == GoalStatus.SUCCEEDED)):
-                rospy.loginfo('Performing tasks...')
-                rospy.sleep(3)
-            else:
-                rospy.logerr('Unable to reach a target goal.')
-                sys.exit()
-                
+            for jackal in jackals:
+                rospy.loginfo('{} task: {}'.format(jackal.name, jackal.tasks[i]))
+            rospy.sleep(3)
+
             # Reverse from wall?
 
         rospy.loginfo('Finished goal sequence.')
         
     except rospy.ROSInterruptException:
-        rospy.loginfo("ROS Interruption in multi_jackal_navigation")
+        rospy.loginfo("ROS Interruption in single_jackal_navigation")
