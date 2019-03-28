@@ -78,7 +78,7 @@ if __name__ == '__main__':
     try:
         # Initialize node
         if(len(sys.argv) != 2):
-            rospy.logerr('Call format: jackal_goal_server.py <jackal_name>')
+            print('Call syntax: jackal_goal_server.py <jackal_name>')
             sys.exit()
 
         ns = sys.argv[1]
