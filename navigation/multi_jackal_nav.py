@@ -15,7 +15,7 @@ class JackalNavigator:
     def __init__(self, name):
         self.name = name
         self.pub = rospy.Publisher(name + '/goal', MoveBaseGoal, queue_size=1)
-        self.sub = rospy.Subscriber(name + '/res', Bool, self.resultCallback())
+        self.sub = rospy.Subscriber(name + '/result', Bool, self.resultCallback)
         self.results = []
         self.goals = []
         self.tasks = []
@@ -49,13 +49,13 @@ if __name__ == '__main__':
 
         # Some test goals for simulation
         tst_right = Goal2D(-3.0, -.8, PI/2, 'map')
-        tst_left = Goal2D(-6.0, -2.0, -PI/2, 'map')
-        tst_up = Goal2D(-8.2, -1.0, 1.6, 'map')
+        tst_left = Goal2D(-6.0, -2.05, -PI/2, 'map')
+        tst_up = Goal2D(-8.2, -1.0, PI, 'map')
         tst_left2 = Goal2D(-6.0, 1.5, 0.0, 'map')
 
         # Jackal acoustic IM goals and tasks
-        jackals[0].addGoals([tst_right, tst_left])
-        jackals[0].addTasks(['listen', 'speak'])
+        jackals[0].addGoals([tst_right, tst_left, tst_up])
+        jackals[0].addTasks(['listen', 'speak', 'listen'])
 
         if(len(jackals) > 1):
             jackals[1].addGoals([tst_up, tst_left2])
@@ -88,6 +88,7 @@ if __name__ == '__main__':
             # Reverse from wall?
 
         rospy.loginfo('Finished goal sequence.')
-        
+        rospy.sleep(3)
+    
     except rospy.ROSInterruptException:
         rospy.loginfo("ROS Interruption in single_jackal_navigation")
