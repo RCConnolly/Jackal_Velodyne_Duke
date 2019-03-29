@@ -82,16 +82,16 @@ if __name__ == '__main__':
             print('Call syntax: jackal_goal_server.py <jackal_name> <x_init> <y_init> <yaw_init>')
             sys.exit()
 
+        ns = sys.argv[1]
         if(num_args == 5):
-            x_init = sys.argv[3]
-            y_init = sys.argv[4]
-            yaw_init = sys.argv[5]
+            x_init = float(sys.argv[2])
+            y_init = float(sys.argv[3])
+            yaw_init = float(sys.argv[4])
         else:
             x_init = 0
             y_init = 0
             yaw_init = 0
 
-        ns = sys.argv[1]
         node_name = ns + '_goal_server'
         rospy.init_node(node_name)
         rospy.loginfo('Created {} node'.format(node_name))
