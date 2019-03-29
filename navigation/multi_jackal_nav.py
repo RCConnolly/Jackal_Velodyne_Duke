@@ -53,14 +53,13 @@ if __name__ == '__main__':
         tst_up = Goal2D(-8.2, -1.0, PI, 'map')
         tst_left2 = Goal2D(-6.0, 1.5, 0.0, 'map')
 
-        
-	# Hudson test goals
-	listen_1 = Goal2D(-1.5, -0.5, -1.57, 'map')
-	listen_2 = Goal2D(-2.75, 1, 3.14, 'map')
-	speak_1 = Goal2D(-1.5, 1, -1.57, 'map')
-	speak_2 = Goal2D(-1.5, 1, 3.14, 'map')
+        # Hudson test goals
+        listen_1 = Goal2D(-1.5, -0.5, -1.57, 'map')
+        listen_2 = Goal2D(-2.75, 1, 3.14, 'map')
+        speak_1 = Goal2D(-1.5, 1, -1.57, 'map')
+        speak_2 = Goal2D(-1.5, 1, 3.14, 'map')
 
-	# Jackal acoustic IM goals and tasks
+        # Jackal acoustic IM goals and tasks
         jackals[0].addGoals([listen_1, listen_2])
         jackals[0].addTasks(['listen', 'listen'])
         if(len(jackals) > 1):
