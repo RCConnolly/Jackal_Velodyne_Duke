@@ -1,4 +1,4 @@
-image: workspace.pgm
+image: hudson_front.pgm
 resolution: 0.020000
 origin: [-20.240000, -10.000000, 0.000000]
 negate: 0
