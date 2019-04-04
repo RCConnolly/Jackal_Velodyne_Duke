@@ -4,10 +4,10 @@
   <arg name="second_host" default="jackal-2"/>
 
   <!-- Single Jackal Discovery -->
-  <node name="master_discovery" pkg="master_discovery_fkie" type="master_discovery" output="screen">
-    <rosparam param="robot_hosts" unless="$(arg dual_discover)">['$(arg first_host)']</rosparam>
-    <rosparam param="robot_hosts" if="$(arg dual_discover)">['$(arg first_host)','$(arg second_host)']</rosparam>
-  </node>
+  <node name="master_discovery" pkg="master_discovery_fkie" type="master_discovery" output="screen"  unless="$(arg dual_discover)" args="_robot_hosts:=[$(arg first_host)]" />
+
+  <!-- Dual Jackal Discovery -->
+  <node name="master_discovery" pkg="master_discovery_fkie" type="master_discovery" output="screen"  if="$(arg dual_discover)" args="_robot_hosts:=[$(arg first_host),$(arg second_host)]" />
   
 </launch>
        
