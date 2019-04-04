@@ -1,0 +1,13 @@
+<launch>
+  <arg name="first_host" default="jackal-1" />
+  <arg name="dual_discover" default="false" />
+  <arg name="second_host" default="jackal-2"/>
+
+  <!-- Single Jackal Discovery -->
+  <node name="master_discovery" pkg="master_discovery_fkie" type="master_discovery" output="screen">
+    <rosparam param="robot_hosts" unless="$(arg dual_discover)">['$(arg first_host)']</rosparam>
+    <rosparam param="robot_hosts" if="$(arg dual_discover)">['$(arg first_host)','$(arg second_host)']</rosparam>
+  </node>
+  
+</launch>
+       

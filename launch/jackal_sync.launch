@@ -1,0 +1,11 @@
+<launch>
+  <arg name="first_name" default="Jackal1" />
+  <arg name="second_name" default="Jackal2" />
+  <arg name="dual_jackal" default="false" />
+
+  <node name="master_sync" pkg="master_sync_fkie" type="master_sync" output="screen">
+    <rosparam param="sync_topics" unless="$(dual_jackal)">['/$(first_name)/goal','/$(first_name)/result']</rosparam>
+    <rosparam param="sync_topics" if="$(dual_jackal)">['/$(first_name)/goal','/$(first_name)/result','/$(second_name)/goal','/$(second_name)/result']</rosparam>
+  </node>
+
+</launch>

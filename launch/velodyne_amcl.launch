@@ -1,0 +1,21 @@
+<launch>
+
+  <!-- Run pointcloud to laserscan conversion-->
+  <include file="$(find pointcloud_to_laserscan)/launch/pointcloud2laser.launch" />
+
+  <!--- Run AMCL -->
+  <arg name="map_file" default="$(find jackal_velodyne_duke)/navigation/maps/hudson_test_back.yaml"/>
+  <include file="$(find jackal_navigation)/launch/amcl_demo.launch" arg="$(arg map_file)" />
+
+  <!--- Run goal_server -->
+  <arg name="robot_name" />
+  <arg name="x" default="0" />
+  <arg name="y" default="0" />
+  <arg name="yaw_rad" default="0" />
+  <node name="goal_server" pkg="jackal_velodyne_duke" type="jackal_goal_server.py" args="$(arg robot_name) $(arg x) $(arg y) $(arg yaw_rad)" output="screen"/>
+
+  <!-- Discover desktop master if discovery argument is true -->
+  <arg name="discovery" default="true" />
+  <include file="$(find jackal_velodyne_duke)/launch/desktop_discovery.launch" if="$(arg discovery" />
+  
+</launch>
