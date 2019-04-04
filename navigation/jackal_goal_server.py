@@ -81,9 +81,11 @@ if __name__ == '__main__':
         if(num_args < 2):
             print('Call syntax: jackal_goal_server.py <jackal_name> <x_init> <y_init> <yaw_init>')
             sys.exit()
-
-        ns = sys.argv[1]
-        if(num_args == 5):
+	print('Args:')
+	print(sys.argv)
+	
+	ns = sys.argv[1]
+	if(num_args >= 5):
             x_init = float(sys.argv[2])
             y_init = float(sys.argv[3])
             yaw_init = float(sys.argv[4])
@@ -98,6 +100,7 @@ if __name__ == '__main__':
 
         # Set initial pose for amcl
         initial = [x_init, y_init, yaw_init]
+	print(initial)
         rospy.loginfo('Setting initial pose to: {}'.format(initial))
         InitialPosePublisher = rospy.Publisher('initialpose',
                                                PoseWithCovarianceStamped,
