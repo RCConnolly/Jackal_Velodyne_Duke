@@ -54,17 +54,17 @@ if __name__ == '__main__':
         tst_left2 = Goal2D(-6.0, 1.5, 0.0, 'map')
 
         # Hudson test goals
-        listen_1 = Goal2D(-1.5, -0.5, -1.57, 'map')
-        listen_2 = Goal2D(-2.75, 1, 3.14, 'map')
-        speak_1 = Goal2D(-1.5, 1, -1.57, 'map')
-        speak_2 = Goal2D(-1.5, 1, 3.14, 'map')
+        listen_1 = Goal2D(-0.25, -1.72, -0.2, 'map')
+        listen_2 = Goal2D(-1.75, -3.6, 3, 'map')
+        speak_1 = Goal2D(-1.4, -1.5, -0.2, 'map')
+        speak_2 = Goal2D(-0.5, -3.9, 3, 'map')
 
         # Jackal acoustic IM goals and tasks
-        jackals[0].addGoals([listen_1, listen_2])
-        jackals[0].addTasks(['listen', 'listen'])
+        jackals[0].addGoals([listen_1, speak_2])
+        jackals[0].addTasks(['listen', 'speak'])
         if(len(jackals) > 1):
-            jackals[1].addGoals([speak_1, speak_2])
-            jackals[1].addTasks(['speak', 'speak'])
+            jackals[1].addGoals([speak_1, listen_2])
+            jackals[1].addTasks(['speak', 'listen'])
         
         rospy.loginfo('Pause while goal publisher becomes recognized...')
         rospy.sleep(5)
@@ -82,7 +82,7 @@ if __name__ == '__main__':
             # TODO improve this implementation
             rospy.loginfo('Waiting for results from Jackals')
             for jackal in jackals:
-                while(jackal.finished_goals < i+1):
+                while((jackal.finished_goals < i+1) and not rospy.is_shutdown()):
                     continue
 
             # Perform task
@@ -95,5 +95,5 @@ if __name__ == '__main__':
         rospy.loginfo('Finished goal sequence.')
         rospy.sleep(3)
     
-    except rospy.ROSInterruptException:
-        rospy.loginfo("ROS Interruption in single_jackal_navigation")
+    except rospy.ROSException:
+        rospy.loginfo("ROS Exception  in single_jackal_navigation")
