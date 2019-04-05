@@ -1,11 +1,13 @@
 <launch>
 
   <!-- Run pointcloud to laserscan conversion-->
-  <include file="$(find pointcloud_to_laserscan)/launch/pointcloud2laser.launch" />
+  <include file="$(find pointcloud_to_laserscan)/launch/pointcloud2laserscan.launch" />
 
   <!--- Run AMCL -->
   <arg name="map_file" default="$(find jackal_velodyne_duke)/navigation/maps/hudson_test_back.yaml"/>
-  <include file="$(find jackal_navigation)/launch/amcl_demo.launch" arg="$(arg map_file)" />
+  <include file="$(find jackal_navigation)/launch/amcl_demo.launch">
+ 	<arg name="map_file" value="$(arg map_file)" />
+  </include>
 
   <!--- Run goal_server -->
   <arg name="robot_name" />
@@ -16,6 +18,6 @@
 
   <!-- Discover desktop master if discovery argument is true -->
   <arg name="discovery" default="true" />
-  <include file="$(find jackal_velodyne_duke)/launch/desktop_discovery.launch" if="$(arg discovery" />
+  <include file="$(find jackal_velodyne_duke)/launch/desktop_discovery.launch" if="$(arg discovery)" />
   
 </launch>
