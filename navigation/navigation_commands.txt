@@ -1,0 +1,25 @@
+Single Jackal Navigation Commands:
+
+Jackal1
+1. (on desktop) roslaunch jackal_velodyne_duke jackal_discovery.launch
+2. (on Jackal1 starting at left initialization spot) roslaunch jackal_velodyne_duke velodyne_amcl.launch robot_name:=Jackal1 x:=0 y:=0 yaw_rad:=-1.7 discovery:=true
+3. (on Jackal1) roslaunch jackal_velodyne_duke desktop_sync.launch jackal_name:=Jackal1
+4. (on desktop) roslaunch jackal_velodyne_duke jackal_sync.launch 
+5. (on desktop) ./multi_jackal_nav.py Jackal1
+
+Jackal2
+1. (on desktop) roslaunch jackal_velodyne_duke jackal_discovery.launch first_host:=jackal-2
+2. (on Jackal2 starting at left initialization spot) roslaunch jackal_velodyne_duke velodyne_amcl.launch robot_name:=Jackal2 x:=0 y:=0 yaw_rad:=-1.7 discovery:=true
+3. (on Jackal1) roslaunch jackal_velodyne_duke desktop_sync.launch jackal_name:=Jackal2
+4. (on desktop) roslaunch jackal_velodyne_duke jackal_sync.launch first_name:=Jackal2
+5. (on desktop) ./multi_jackal_nav.py Jackal2
+
+Dual robot Navigation (jackal1 on left, jackal2 on right)
+
+(on desktop) roslaunch jackal_velodyne_duke jackal_discovery.launch dual_discover:=true
+(on Jackal1) roslaunch jackal_velodyne_duke velodyne_amcl.launch robot_name:=Jackal1 x:=0 y:=0 yaw_rad:=-1.7 discovery:=true
+(on Jackal1) roslaunch jackal_velodyne_duke desktop_sync.launch jackal_name:=Jackal1
+(on Jackal2) roslaunch jackal_velodyne_duke velodyne_amcl.launch robot_name:=Jackal2 x:=-1 y:=0.23 yaw_rad:=-1.7 discovery:=true
+(on Jackal2) roslaunch jackal_velodyne_duke desktop_sync.launch jackal_name:=Jackal2
+(on desktop) roslaunch jackal_velodyne_duke jackal_sync.launch dual_sync:=true
+(on desktop) ./multi_jackal_nav.py Jackal1 Jackal2
