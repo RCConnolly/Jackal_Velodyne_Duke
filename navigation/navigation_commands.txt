@@ -10,7 +10,7 @@ Jackal1
 Jackal2
 1. (on desktop) roslaunch jackal_velodyne_duke jackal_discovery.launch first_host:=jackal-2
 2. (on Jackal2 starting at left initialization spot) roslaunch jackal_velodyne_duke velodyne_amcl.launch robot_name:=Jackal2 x:=0 y:=0 yaw_rad:=-1.7 discovery:=true
-3. (on Jackal1) roslaunch jackal_velodyne_duke desktop_sync.launch jackal_name:=Jackal2
+3. (on Jackal2) roslaunch jackal_velodyne_duke desktop_sync.launch jackal_name:=Jackal2
 4. (on desktop) roslaunch jackal_velodyne_duke jackal_sync.launch first_name:=Jackal2
 5. (on desktop) ./multi_jackal_nav.py Jackal2
 
