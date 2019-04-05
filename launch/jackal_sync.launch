@@ -5,6 +5,6 @@
 
   <node name="master_sync" pkg="master_sync_fkie" type="master_sync" output="screen" unless="$(arg dual_sync)" args="_sync_topics:=[/$(arg first_name)/goal,/$(arg first_name)/result]" />
 
-  <node name="master_sync" pkg="master_sync_fkie" type="master_sync" output="screen" if="$(arg dual_sync)" args="_sync_topics:=[/$(arg first_name)/goal,/$(arg first_name)/result],/$(arg second_name)/goal,/$(arg second_name)/result]" />
+  <node name="master_sync" pkg="master_sync_fkie" type="master_sync" output="screen" if="$(arg dual_sync)" args="_sync_topics:=[/$(arg first_name)/goal,/$(arg first_name)/result,/$(arg second_name)/goal,/$(arg second_name)/result]" />
 
 </launch>

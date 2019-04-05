@@ -12,7 +12,7 @@
   <arg name="x" default="0" />
   <arg name="y" default="0" />
   <arg name="yaw_rad" default="0" />
-  <node name="goal_server" pkg="jackal_velodyne_duke" type="jackal_goal_server.py" args="$(arg robot_name) $(arg x) $(arg y) $(arg yaw_rad)" output="screen"/>
+  <node name="$(arg robot_name)_goal_server" pkg="jackal_velodyne_duke" type="jackal_goal_server.py" args="$(arg robot_name) $(arg x) $(arg y) $(arg yaw_rad)" output="screen"/>
 
   <!-- Discover desktop master if discovery argument is true -->
   <arg name="discovery" default="true" />
