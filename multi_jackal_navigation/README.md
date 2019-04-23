@@ -1,8 +1,10 @@
 This document describes the steps necessary to set up a multi-master network for two Jackals to receive goal commands from a ground station computer and navigate to those goals independently in a mapped environment.
 
-The generalized navigation control-flow between computers is displayed in the figure below.
-
- `TODO INSERT IMAGE OF CONTROL FLOW`
+The generalized navigation control-flow between computers is displayed in the figure below. 
+  
+<p align="center">
+    <img src="https://github.com/RCConnolly/Jackal_Velodyne_Duke/wiki/images/comm_control_flow.png" width="400">
+ </p>
 
 # Set-up
 
@@ -64,12 +66,7 @@ The details of each of these steps are described in the sections below, specific
 
 ## Single Jackal Simulation
 
-A single robot can be simulated in a virtual environment and sent goals with the _multi_robot_nav.py__ script. Clearpath Robotics provides packages for simulating the Jackal in a Gazebo 3D environment, and these packages can be installed by running the following command:
-
-`TODO INCLUDE INSTALL SCRIPT FOR JACKAL DESKTOP`
-
-Once the necessary packages are installed, follow the [navigation instructions](http://www.clearpathrobotics.com/assets/guides/jackal/navigation.html) published by Clearpath Robotics to set-up the simulated environment. The _multi_jackal_nav.py_ script can then be used to send a sequence of goal commands to the simulated Jackal.
-
+A single robot can be simulated in a virtual environment and sent goals with the _multi_robot_nav.py_ script. Clearpath Robotics provides [instructions](http://www.clearpathrobotics.com/assets/guides/jackal/simulation.html) for simulating the Jackal in a Gazebo 3D environment. Once the necessary simulation packages are installed, follow the [navigation instructions](http://www.clearpathrobotics.com/assets/guides/jackal/navigation.html) published by Clearpath Robotics to set-up the simulated environment. The _multi_jackal_nav.py_ script can then be used to send a sequence of goal commands to the simulated Jackal.
 
 ## Real-World
 
