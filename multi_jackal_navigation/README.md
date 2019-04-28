@@ -8,7 +8,7 @@ The generalized navigation control-flow between computers is displayed in the fi
 
 # Set-up
 
-The first step is to follow the initial set-up procedure, `TODO REFERENCE README OF INITIAL SET-UP AND NAVIGATION SET-UP`
+The first step is to follow the [initial set-up procedure](../../../#jackal-initial-setup).
 
 Next is configuring the multi-master network for navigation, which requires several steps, including installing file dependencies and modifying existing files on the Jackal robot.  Instructions for these steps are detailed below.
 
@@ -32,14 +32,54 @@ For this project, the following modifications to local files are required:
 
 For reference, these are the system files after modification for one of the Jackals (with in-line comments after the # symbol):
 
-**/etc/hosts**
-`TODO INCLUDE SYSTEM FILES FROM A JACKAL`
+**Jackal's /etc/hosts**:
+```
+127.0.0.1	localhost
 
-**/etc/hostname**
-`TODO INCLUDE SYSTEM FILES FROM A JACKAL`
+# Jackal's are set up with static IP so use that instead of 127.0.1.1 as recommended here:
+# https://www.debian.org/doc/manuals/debian-reference/ch05.en.html#_the_hostname_resolution
+10.194.128.24 	jackal-2.wireless.duke.edu jackal-2
 
-**~/.bashrc**
-`TODO INCLUDE SYSTEM FILES FROM A JACKAL`
+# The following lines are for multi-master framework for Jackal robots
+10.194.128.23 jackal-1
+10.236.66.137 ramaDesktop
+
+# The following lines are desirable for IPv6 capable hosts
+::1     localhost ip6-localhost ip6-loopback
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+```
+
+**Jackal's /etc/hostname**:
+`jackal-2`
+
+**Jackal's ~/.bashrc**:
+`export ROS_MASTER_URI=http://10.194.128.24:11311`
+
+**Desktop's /etc/hosts**:
+```
+127.0.0.1	localhost
+127.0.1.1	dukerama-Precision-WorkStation-T5500
+
+# The following lines are for multi-master framework for Jackal robots
+10.194.128.23 jackal-1
+10.194.128.24 jackal-2
+10.236.66.137 ramaDesktop
+```
+**Desktop's /etc/hostname**:
+`dukerama-Precision-WorkStation-T5500`
+
+**Desktop's ~/.bashrc**:
+```
+source /opt/ros/indigo/setup.bash
+source ~/jackal_catkin_ws/devel/setup.bash
+
+# ROS_MASTER_URI is used to tell nodes where the master is
+export ROS_MASTER_URI=http://10.236.66.137:11311 # desktop IP non-static, may change on computer start-up
+
+# ROS_HOSTNAME set the network address of ROS nodes
+export ROS_HOSTNAME=ramaDesktop
+```
 
 To obtain the IP address of a computer, use the command `ip addr`. The IP addresses of each hostname listed in the /etc/hosts file should match the current IP address of the computer that the hostname is referencing. For our network, each Jackal was assigned a static IP so this number should only need to be set once, however, the desktop's IP is not static, meaning that it's IP address will need to be re-checked after shutdown or restart.
 
