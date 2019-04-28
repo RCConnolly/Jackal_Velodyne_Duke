@@ -7,6 +7,7 @@
 """
 
 import rospy
+import sys
 from geometry_msgs.msg import Twist, Point
 import tf
 from math import sqrt, pow
@@ -16,7 +17,7 @@ class DriveStraight:
     def __init__(self):
 
         # Publisher to control the robot's speed
-        self.cmd_vel = rospy.Publisher('/cmd_vel', Twist, queue_size=5)
+        self.cmd_vel = rospy.Publisher('cmd_vel', Twist, queue_size=5)
 
         # Initialize the tf listener
         self.tf_listener = tf.TransformListener()
@@ -24,10 +25,10 @@ class DriveStraight:
         # Give tf some time to fill its buffer
         rospy.sleep(2)
         
-        self.odom_frame = '/odom'
-        self.base_frame = '/base_link'
+        self.odom_frame = 'odom'
+        self.base_frame = 'base_link'
         
-    def move(self, goal_distance, linear_speed=0.15):
+    def move(self, goal_distance, linear_speed=0.10):
 
         rospy.loginfo('Moving a distance of {} at speed {}'
                       .format(goal_distance, linear_speed))
@@ -36,7 +37,6 @@ class DriveStraight:
         rate = 20
         r = rospy.Rate(rate)
         
-        # Set the forward linear speed to 0.15 meters per second
         # Min/max velocity for jackal listed here:
         # https://github.com/jackal/jackal/blob/5eb9356c891a4168cfa98b4b42a55561b245ba81/jackal_navigation/params/base_local_planner_params.yaml
         move_cmd = Twist()
@@ -52,7 +52,7 @@ class DriveStraight:
         distance = 0
             
         # Enter the loop to move along a side
-        while distance < goal_distance and not rospy.is_shutdown():
+        while (distance < goal_distance) and (not rospy.is_shutdown()):
             # Publish the Twist message and sleep 1 cycle
             self.cmd_vel.publish(move_cmd)
             
@@ -84,7 +84,19 @@ class DriveStraight:
  
 if __name__ == '__main__':
     try:
-        OutAndBack()
-    except:
-        rospy.loginfo("Out-and-Back node terminated.")
+        rospy.init_node('drive_straight')
+        if(len(sys.argv) < 2):
+            print('Call syntax: ./odom_drive_to_wall.py <distance> <velocity>')
+            sys.exit()
+            
+        dist = float(sys.argv[1])
+        if(len(sys.argv) > 2):
+            vel = float(sys.argv[2])
+        else:
+            vel = 0.1
 
+        driver = DriveStraight()
+        driver.move(dist,vel)
+        
+    except:
+        rospy.loginfo("drive_straight node terminated.")
