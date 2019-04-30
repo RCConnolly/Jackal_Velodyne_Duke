@@ -10,7 +10,7 @@ import rospy
 import sys
 from geometry_msgs.msg import Twist, Point
 import tf
-from math import sqrt, pow
+import math
 
 
 class DriveStraight:
@@ -59,15 +59,16 @@ class DriveStraight:
             r.sleep()
         
             # Get the current position
-            position = self.get_odom_pos()
+            cur_pos = Point()
+	    cur_pos = self.get_odom_pos()
             
             # Compute the Euclidean distance from the start
-            distance = sqrt(pow((position.x - x_start), 2) +
-                            pow((position.y - y_start), 2))
+	    distance = math.sqrt(math.pow((cur_pos.x - x_start), 2) +
+                            math.pow((cur_pos.y - y_start), 2))
 
         if(distance >= goal_distance):
             rospy.loginfo('Finished moving')
-            
+
         # Stop the robot
         self.cmd_vel.publish(Twist())
         rospy.sleep(1)
