@@ -6,7 +6,7 @@ from nav_module import Goal2D
 from move_base_msgs.msg import MoveBaseGoal
 from move_base_msgs.msg import MoveBaseActionGoal, MoveBaseActionResult
 from actionlib_msgs.msg import GoalStatus
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool, String
 
 PI = 3.14
 
@@ -14,7 +14,8 @@ PI = 3.14
 class JackalNavigator:
     def __init__(self, name):
         self.name = name
-        self.pub = rospy.Publisher(name + '/goal', MoveBaseGoal, queue_size=1)
+        self.goal_pub = rospy.Publisher(name + '/goal', MoveBaseGoal, queue_size=1)
+        self.task_pub = rospy.Publisher(name + '/task', String, queue_size=1)
         self.sub = rospy.Subscriber(name + '/result', Bool, self.resultCallback)
         self.results = []
         self.goals = []
@@ -76,10 +77,10 @@ if __name__ == '__main__':
             # Move to goal
             for jackal in jackals:
                 rospy.loginfo('Sending goal to {}'.format(jackal.name))
-                jackal.pub.publish(jackal.goals[i].to_move_base())
+                jackal.goal_pub.publish(jackal.goals[i].to_move_base())
+                jackal.task_pub.publish(jackal.tasks[i])
 
             # Wait for results
-            # TODO improve this implementation
             rospy.loginfo('Waiting for results from Jackals')
             for jackal in jackals:
                 while((jackal.finished_goals < i+1) and not rospy.is_shutdown()):
@@ -89,8 +90,6 @@ if __name__ == '__main__':
             for jackal in jackals:
                 rospy.loginfo('{} task: {}'.format(jackal.name, jackal.tasks[i]))
             rospy.sleep(3)
-
-            # Reverse from wall?
 
         rospy.loginfo('Finished goal sequence.')
         rospy.sleep(3)

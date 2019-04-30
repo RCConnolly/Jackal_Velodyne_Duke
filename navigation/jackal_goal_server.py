@@ -2,7 +2,7 @@
 
 import rospy
 import sys
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool, String
 from actionlib_msgs.msg import GoalStatus
 from move_base_client import MoveBaseClient
 from move_base_msgs.msg import MoveBaseGoal, MoveBaseActionResult
@@ -32,9 +32,13 @@ def SendInitialPose(InitialPosePublisher, initial_pose):
 class JackalGoalServer:
     def __init__(self, ns):
         self.ns = ns
-        res_topic = ns + '/result'
-        self.pub = rospy.Publisher(res_topic, Bool, queue_size=1)
-        
+        self.task = None
+        self.res_topic = ns + '/result'
+        self.turn_topic = ns + '/turn_goal'
+        self.res_pub = rospy.Publisher(res_topic, Bool, queue_size=1)
+        self.turn_pub = rospy.Publisher(turn_topic, MoveBaseGoal, queue_size=1)
+        self.turn_goal = None
+
     def goal_callback(self, goal):
         '''
         goal is of type MoveBaseActionGoal
@@ -47,30 +51,53 @@ class JackalGoalServer:
             rospy.loginfo("Sucessfully reached target area.")
         else:
             rospy.logerr("{} unable to reach goal".format(self.ns))
+            self.task = None
+            self.turn_goal = None
             self.pub.publish(False)
-        '''
-        driver = DriveStraight()
+            return
 
-        # Rotate toward wall
-        (obj_distance, obj_angle) = findNearestObject()
-        turn_goal = Goal2D(0, 0, obj_angle, 'front_laser')
-        turn_res = mb_client.send_goal(turn_goal.to_move_base())
+        # Rotate toward sample
+        if(self.task == 'listen'):
+            (obj_distance, obj_angle) = findNearestObject()
+            self.turn_goal = Goal2D(0, 0, obj_angle, 'front_laser').to_move_base()
+            self.pose_pub.publish(turn_goal)
+        elif(self.task == 'speak'):
+            if(self.turn_goal = None):
+                self.turn_goal = rospy.wait_for_message(self.turn_topic, MoveBaseGoal, timeout=10)
+        else:
+            rospy.loginfo("Didn't receive task to perform, continuing to next goal.")
+            self.res_pub.publish(reached_goal)
+            self.task = None
+            self.turn_goal = None
+            return
+            
+        turn_res = mb_client.send_goal(self.turn_goal)
         if turn_res.status == GoalStatus.SUCCEEDED:
             rospy.loginfo("Turned toward nearest sample")
 
         # Drive to wall
-        wall_separation = 0.012
-        dist_to_robo_front = 0.21
-        laser_range_acc = 0.03
-        dist_buff = 0.1
-        goal_distance = (obj_distance - wall_separation -
-                         dist_to_robo_front - laser_range_acc -
-                         dist_buff)
-        driver.move(goal_distance)
-        rospy.loginfo("Drove toward nearest sample")
-        '''
+        if(self.task == 'listen'):
+            driver = DriveStraight()
+            wall_separation = 0.012
+            dist_to_robo_front = 0.21
+            laser_range_acc = 0.03
+            dist_buff = 0.1
+            goal_distance = (obj_distance - dist_to_robo_front)
+            driver.move(goal_distance)
+            rospy.loginfo("Drove toward nearest sample")
 
-        self.pub.publish(reached_goal)
+        self.task = None
+        self.turn_goal = None
+        self.res_pub.publish(reached_goal)
+        return
+
+    def set_task(self, task):
+        self.task = task
+        rospy.loginfo("Setting task to {}".format(task))
+    
+    def set_turn_goal(self, goal):
+        self.turn_goal = goal
+        rospy.loginfo("Received turning goal.")
 
 
 # If the python node is executed as main process (sourced directly)
@@ -117,6 +144,19 @@ if __name__ == '__main__':
         rospy.Subscriber(goal_topic, MoveBaseGoal,
                          callback=goal_server.goal_callback)
         rospy.loginfo('Subscribed to {}'.format(goal_topic))
+
+        
+        # Subscribe to task topic & relay to goal server
+        task_topic = ns + '/task'
+        rospy.Subscriber(task_topic, String,
+                         callback=goal_server.set_task)
+        rospy.loginfo('Subscribed to {}'.format(task_topic))
+
+        # Subscribe to turn goal topic & relay to goal server
+        rospy.Subscriber(jackal.turn_topic, MoveBaseGoal,
+                         callback=goal_server.set_turn_goal)
+        rospy.loginfo('Subscribed to {}'.format(jackal.turn_topic))
+
         rospy.spin()
 
     except rospy.ROSInterruptException:
