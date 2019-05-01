@@ -110,7 +110,11 @@ A single robot can be simulated in a virtual environment and sent goals with the
 
 ## Single Jackal Real-World
 
-On the ground station computer (ie. desktop), first move to the navigation folder of the Jackal Velodyne Duke repository, which on the RAMA desktop is accomplished with the command `cd jackal_catkin_ws/src/Jackal_Velodyne_Duke/navigation/`. Navigating both robots within a saved map can be accomplished with the following steps. Note that each command needs to be run in an individual terminal window, and the commands listed as "on Jackal" should be run by first ssh'ing into that Jackal.
+On the ground station computer (ie. desktop), first move to the navigation folder of the Jackal Velodyne Duke repository, which on the RAMA desktop is accomplished with the command:
+
+```cd jackal_catkin_ws/src/Jackal_Velodyne_Duke/navigation/```
+
+Navigating both robots within a saved map can be accomplished with the following steps. Note that each command needs to be run in an individual terminal window, and the commands listed as "on Jackal" should be run by first ssh'ing into that Jackal.
 
   1. (on desktop) Tell the desktop to discover the necessary nodes for navigating two jackals: `roslaunch jackal_velodyne_duke jackal_discovery.launch dual_discover:=true`
   2. (on Jackal1) Convert pointcloud messages to 2D laserscans, launch the amcl localiztion node, launch the Jackal's goal server, and discover the desktop's master node: `roslaunch jackal_velodyne_duke velodyne_amcl.launch robot_name:=Jackal1 x:=0 y:=0 yaw_rad:=-1.7 discovery:=true`
