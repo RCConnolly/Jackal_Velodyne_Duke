@@ -54,7 +54,7 @@ if __name__ == '__main__':
         tst_left2 = Goal2D(-6.0, 1.5, 0.0, 'map')
 
         # Hudson test goals
-        listen_1 = Goal2D(-0.25, -1.8, -0.2, 'map')
+        listen_1 = Goal2D(-0.3, -1.8, -0.2, 'map')
         listen_2 = Goal2D(-1.6, -3.7, 3, 'map')
         speak_1 = Goal2D(-1.4, -1.6, -0.2, 'map')
         speak_2 = Goal2D(-0.5, -4.2, 3, 'map')
