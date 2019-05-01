@@ -35,11 +35,13 @@ class JackalGoalServer:
         self.task = None
         self.turn_goal = None
         
-        self.res_topic = ns + '/result'
-        self.res_pub = rospy.Publisher(self.res_topic, Bool, queue_size=1)
+        self.goal_res_pub = rospy.Publisher( ns + '/move_result', Bool, queue_size=1)
 
         self.turn_topic = '/turn_goal'
         self.turn_pub = rospy.Publisher(self.turn_topic, MoveBaseGoal, queue_size=1)
+
+        self.task_res_pub = rospy.Publisher(ns + '/task_result', Bool, queue_size=1)
+
 
     def goal_callback(self, goal):
         '''
@@ -55,7 +57,7 @@ class JackalGoalServer:
             rospy.logerr("{} unable to reach goal".format(self.ns))
             self.task = None
             self.turn_goal = None
-            self.res_pub.publish(False)
+            self.goal_res_pub.publish(False)
             return
 
         # Rotate toward sample
@@ -76,7 +78,7 @@ class JackalGoalServer:
             rospy.loginfo("Didn't receive task to perform, continuing to next goal.")
             self.task = None
             self.turn_goal = None
-            self.res_pub.publish(reached_goal)
+            self.goal_res_pub.publish(reached_goal)
             return
             
         turn_res = mb_client.send_goal(turn_goal)
@@ -95,7 +97,7 @@ class JackalGoalServer:
                 rospy.loginfo("Drove toward nearest sample")
 
         self.turn_goal = None
-        self.res_pub.publish(turn_res)
+        self.goal_res_pub.publish(turn_res)
         return
 
     def set_task(self, task):
@@ -122,11 +124,11 @@ class JackalGoalServer:
                     # Reverse from wall 0.5m
                     driver = DriveStraight()
                     driver.move(0.5, -0.1)
-                    
                 elif(self.task == 'speak'):
                     # TODO - implement white noise playing
                     rospy.loginfo('speaking')
                     rospy.sleep(3.0)
+                self.task_res_pub.publish(True)
         else:
             rospy.loginfo('{} not ready to perform task'.format(self.ns))
             

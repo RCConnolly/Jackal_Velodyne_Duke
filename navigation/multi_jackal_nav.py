@@ -20,18 +20,26 @@ class JackalNavigator:
                                         queue_size=1)
         self.do_task_pub = rospy.Publisher(name + '/do_task', Bool,
                                            queue_size=1)
-        self.sub = rospy.Subscriber(name + '/result', Bool,
-                                    self.resultCallback)
-        self.results = []
+        self.goal_res_sub = rospy.Subscriber(name + '/move_result', Bool,
+                                    self.goalCallback)
+        self.task_res_sub = rospy.Subscriber(name + '/task_result', Bool,
+                                    self.taskCallback)
         self.goals = []
         self.tasks = []
         self.finished_goals = 0
+        self.finished_tasks = 0
 
-    def resultCallback(self, res):
+    def taskCallback(self, res):
+        if(not res):
+            rospy.logerr('{} unable to complete task.'.format(self.name))
+            rospy.signal_shutdown()
+        self.finished_tasks = self.finished_tasks + 1
+        rospy.loginfo('{} finished task.'.format(self.name))
+
+    def goalCallback(self, res):
         if(not res):
             rospy.logerr('{} unable to reach a target goal.'.format(self.name))
             rospy.signal_shutdown()
-        self.results.append(res)
         self.finished_goals = self.finished_goals + 1
         rospy.loginfo('{} reached goal'.format(self.name))
 
@@ -86,8 +94,8 @@ if __name__ == '__main__':
                 jackal.task_pub.publish(jackal.tasks[i])
                 jackal.goal_pub.publish(jackal.goals[i].to_move_base())
 
-            # Wait for results
-            rospy.loginfo('Waiting for results from Jackals')
+            # Wait for goal results
+            rospy.loginfo('Waiting for results from Jackals...')
             for jackal in jackals:
                 while((jackal.finished_goals < i+1) and not rospy.is_shutdown()):
                     continue
@@ -96,8 +104,15 @@ if __name__ == '__main__':
             for jackal in jackals:
                 jackal.do_task_pub.publish(True)
 
+            # Wait for tasks to finish
+            rospy.loginfo('Waiting for tasks to finish...')
+            for jackal in jackals:
+                while((jackal.finished_tasks < jackal.finished_goals) and not rospy.is_shutdown()):
+                    continue
+            rospy.loginfo('...tasks ended')
+
         rospy.loginfo('Finished goal sequence.')
         rospy.sleep(3)
     
     except rospy.ROSException:
-        rospy.loginfo("ROS Exception  in single_jackal_navigation")
+        rospy.loginfo("ROS Exception in multi_jackal_navigation")
