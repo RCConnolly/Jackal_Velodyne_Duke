@@ -108,12 +108,17 @@ The details of each of these steps are described in the sections below, specific
 
 A single robot can be simulated in a virtual environment and sent goals with the _multi_robot_nav.py_ script. Clearpath Robotics provides [instructions](http://www.clearpathrobotics.com/assets/guides/jackal/simulation.html) for simulating the Jackal in a Gazebo 3D environment. Once the necessary simulation packages are installed, follow the [navigation instructions](http://www.clearpathrobotics.com/assets/guides/jackal/navigation.html) published by Clearpath Robotics to set-up the simulated environment. The _multi_jackal_nav.py_ script can then be used to send a sequence of goal commands to the simulated Jackal.
 
-## Real-World
+## Single Jackal Real-World
 
-Navigating both robots within a saved map can be accomplished with the following steps:
+On the ground station computer (ie. desktop), first move to the navigation folder of the Jackal Velodyne Duke repository, which on the RAMA desktop is accomplished with the command `cd jackal_catkin_ws/src/Jackal_Velodyne_Duke/navigation/`. Navigating both robots within a saved map can be accomplished with the following steps. Note that each command needs to be run in an individual terminal window, and the commands listed as "on Jackal" should be run by first ssh'ing into that Jackal.
 
-`TODO INCLUDE NAVIGATION STEPS`
-
+  1. (on desktop) Tell the desktop to discover the necessary nodes for navigating two jackals: `roslaunch jackal_velodyne_duke jackal_discovery.launch dual_discover:=true`
+  2. (on Jackal1) Convert pointcloud messages to 2D laserscans, launch the amcl localiztion node, launch the Jackal's goal server, and discover the desktop's master node: `roslaunch jackal_velodyne_duke velodyne_amcl.launch robot_name:=Jackal1 x:=0 y:=0 yaw_rad:=-1.7 discovery:=true`
+  3. (on Jackal1) Sync topics with the desktop: `roslaunch jackal_velodyne_duke desktop_sync.launch jackal_name:=Jackal1`
+  4. (on Jackal2) Same as step 3, but for Jackal2: `roslaunch jackal_velodyne_duke velodyne_amcl.launch robot_name:=Jackal2 x:=-1 y:=0.23 yaw_rad:=-1.7 discovery:=true`
+  5. (on Jackal2) Same as step 4, but for Jackal2: `roslaunch jackal_velodyne_duke desktop_sync.launch jackal_name:=Jackal2`
+  6. (on desktop) Sync topics from Jackals: `roslaunch jackal_velodyne_duke jackal_sync.launch dual_sync:=true`
+  7. (on desktop) Run the navigation script that coordinates navigation commands to the Jackals. Node that each goal location is specified within this file, so ensure that the goals match the map you are localized into. `./multi_jackal_nav.py Jackal1 Jackal2`
 
 # Troubleshooting
 
