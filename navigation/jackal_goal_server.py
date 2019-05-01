@@ -38,7 +38,7 @@ class JackalGoalServer:
         self.res_topic = ns + '/result'
         self.res_pub = rospy.Publisher(self.res_topic, Bool, queue_size=1)
 
-        self.turn_topic = ns + '/turn_goal'
+        self.turn_topic = '/turn_goal'
         self.turn_pub = rospy.Publisher(self.turn_topic, MoveBaseGoal, queue_size=1)
 
     def goal_callback(self, goal):
@@ -94,7 +94,6 @@ class JackalGoalServer:
                 driver.move(goal_distance)
                 rospy.loginfo("Drove toward nearest sample")
 
-        self.task = None
         self.turn_goal = None
         self.res_pub.publish(turn_res)
         return
@@ -117,15 +116,17 @@ class JackalGoalServer:
             else:
                 rospy.loginfo('{} performing {} task'.format(self.ns, self.task))
                 if(self.task == 'listen'):
-                    # TODO - implement data acquisition
-                    print('listening')
+                    # TODO - implement data acquisition instead of sleeping
+                    rospy.loginfo('listening...')
+                    rospy.sleep(3.0)
                     # Reverse from wall 0.5m
                     driver = DriveStraight()
                     driver.move(0.5, -0.1)
                     
                 elif(self.task == 'speak'):
                     # TODO - implement white noise playing
-                    print('speaking')
+                    rospy.loginfo('speaking')
+                    rospy.sleep(3.0)
         else:
             rospy.loginfo('{} not ready to perform task'.format(self.ns))
             
@@ -187,7 +188,7 @@ if __name__ == '__main__':
         do_task_topic = ns + '/do_task'
         rospy.Subscriber(do_task_topic, Bool,
                          callback=goal_server.performTask)
-        rospy.loginfo('Subscribed to {}'.format(task_topic))
+        rospy.loginfo('Subscribed to {}'.format(do_task_topic))
 
         # Subscribe to turn goal topic & set the jackal's turn goal
         rospy.Subscriber(goal_server.turn_topic, MoveBaseGoal,
