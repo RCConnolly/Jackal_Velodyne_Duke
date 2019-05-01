@@ -82,26 +82,34 @@ class JackalGoalServer:
             roll, pitch, yaw = euler_from_quaternion(rot)
             x, y, _ = trans
 
+            # Publish goal to the /turn_goal topic
             turn_goal = Goal2D(x, y, yaw + obj_angle, 'map').to_move_base()
-
-            # TODO - publish that goal to the turn topic
             self.turn_pub.publish(turn_goal)
-        elif(self.task == 'speak'):
-            if(self.turn_goal is None):
-                rospy.loginfo('{} waiting for turning goal'.format(self.ns))
-                turn_goal = rospy.wait_for_message(self.turn_topic,
-                                                   MoveBaseGoal,
-                                                   timeout=10)
-            else:
-                turn_goal = self.turn_goal
-        else:
-            rospy.loginfo("Didn't receive task to perform, continuing to next goal.")
+
+        elif(self.task != 'speak'):
+            rospy.loginfo("Didn't receive valid task to perform, continuing to next goal.")
             self.task = None
             self.turn_goal = None
             self.goal_res_pub.publish(reached_goal)
             return
-            
-        turn_res = mb_client.send_goal(turn_goal)
+        
+
+        if(self.turn_goal is None):
+            wait_time = 20.0
+            start_t = rospy.get_rostime()
+            rospy.loginfo('{} waiting {} for turning goal'.format(self.ns, wait_time))
+            while((self.turn_goal is None) and 
+                  ((rospy.get_rostime() - start_t) < wait_time)):
+                continue
+
+        if(self.turn_goal is None):
+            rospyloginfo('No turn goal received for {}'.format(self.ns))
+            self.task = None
+            self.goal_res_pub.publish(False)
+            return
+        
+        rospy.loginfo('Turning toward sample...')
+        turn_res = mb_client.send_goal(self.turn_goal)
         if(turn_res):
             rospy.loginfo("Turned toward nearest sample")
 
