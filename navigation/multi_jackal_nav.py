@@ -10,7 +10,6 @@ from std_msgs.msg import Bool, String
 
 PI = 3.14
 
-
 class JackalNavigator:
     def __init__(self, name):
         self.name = name
@@ -54,7 +53,7 @@ if __name__ == '__main__':
         tst_up = Goal2D(-8.2, -1.0, PI, 'map')
         tst_left2 = Goal2D(-6.0, 1.5, 0.0, 'map')
 
-        # Hudson test goals
+        # Hudson test goals outside RAMA lab
         listen_1 = Goal2D(-0.25, -1.8, -0.2, 'map')
         listen_2 = Goal2D(-1.6, -3.7, 3, 'map')
         speak_1 = Goal2D(-1.4, -1.6, -0.2, 'map')
@@ -74,11 +73,11 @@ if __name__ == '__main__':
         num_goals = len(jackals[0].goals)
         for i in range(num_goals):
             
-            # Move to goal
+            # Move to goal position based on task
             for jackal in jackals:
-                rospy.loginfo('Sending goal to {}'.format(jackal.name))
-                jackal.goal_pub.publish(jackal.goals[i].to_move_base())
+                rospy.loginfo('Sending goal and task to {}'.format(jackal.name))
                 jackal.task_pub.publish(jackal.tasks[i])
+                jackal.goal_pub.publish(jackal.goals[i].to_move_base())
 
             # Wait for results
             rospy.loginfo('Waiting for results from Jackals')
