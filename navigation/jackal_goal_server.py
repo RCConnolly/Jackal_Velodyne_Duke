@@ -9,8 +9,8 @@ from move_base_msgs.msg import MoveBaseGoal, MoveBaseActionResult
 from odom_drive_to_wall import DriveStraight
 from nav_module import findNearestObject, Goal2D
 from geometry_msgs.msg import PoseWithCovarianceStamped
-from tf.transformations import quaternion_from_euler
-
+from tf.transformations import quaternion_from_euler, euler_from_quaternion
+import tf
 
 def SendInitialPose(InitialPosePublisher, initial_pose):
     # goal: [x, y, yaw]
@@ -36,12 +36,10 @@ class JackalGoalServer:
         self.turn_goal = None
         
         self.goal_res_pub = rospy.Publisher( ns + '/move_result', Bool, queue_size=1)
+        self.task_res_pub = rospy.Publisher(ns + '/task_result', Bool, queue_size=1)
 
         self.turn_topic = '/turn_goal'
         self.turn_pub = rospy.Publisher(self.turn_topic, MoveBaseGoal, queue_size=1)
-
-        self.task_res_pub = rospy.Publisher(ns + '/task_result', Bool, queue_size=1)
-
 
     def goal_callback(self, goal):
         '''
@@ -63,8 +61,30 @@ class JackalGoalServer:
         # Rotate toward sample
         if(self.task == 'listen'):
             (obj_distance, obj_angle) = findNearestObject()
-            turn_goal = Goal2D(0, 0, obj_angle, 'front_laser').to_move_base()
-            #TODO - instead of relative angle, convert to a shared frame such as the map
+            # TODO - Convert to map rotation in map coordinates
+            # Find quaternion transform from front_laser to map
+            # Initialize the tf listener
+            tf_listener = tf.TransformListener()
+            # Give tf some time to fill its buffer
+            rospy.sleep(2)
+
+            source_frame = 'front_laser'
+            target_frame = 'map'
+
+            # Get the current transform between the odom and base frames
+            try:
+                (trans, rot) = tf_listener.lookupTransform(target_frame, source_frame, rospy.Time(0))
+            except (tf.Exception, tf.ConnectivityException, tf.LookupException):
+                rospy.loginfo("TF Exception")
+                return
+
+            # Convert to euler
+            roll, pitch, yaw = euler_from_quaternion(rot)
+            x, y, _ = trans
+
+            turn_goal = Goal2D(x, y, yaw + obj_angle, 'map').to_move_base()
+
+            # TODO - publish that goal to the turn topic
             self.turn_pub.publish(turn_goal)
         elif(self.task == 'speak'):
             if(self.turn_goal is None):
