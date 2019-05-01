@@ -10,13 +10,18 @@ from std_msgs.msg import Bool, String
 
 PI = 3.14
 
+
 class JackalNavigator:
     def __init__(self, name):
         self.name = name
-        self.goal_pub = rospy.Publisher(name + '/goal', MoveBaseGoal, queue_size=1)
-        self.task_pub = rospy.Publisher(name + '/task', String, queue_size=1)
-        self.do_task_pub = rospy.Publisher(name + '/do_task', Bool, queue_size=1)
-        self.sub = rospy.Subscriber(name + '/result', Bool, self.resultCallback)
+        self.goal_pub = rospy.Publisher(name + '/goal', MoveBaseGoal,
+                                        queue_size=1)
+        self.task_pub = rospy.Publisher(name + '/task', String,
+                                        queue_size=1)
+        self.do_task_pub = rospy.Publisher(name + '/do_task', Bool,
+                                           queue_size=1)
+        self.sub = rospy.Subscriber(name + '/result', Bool,
+                                    self.resultCallback)
         self.results = []
         self.goals = []
         self.tasks = []
@@ -38,7 +43,7 @@ class JackalNavigator:
         for task in tasks:
             self.tasks.append(task)
     
-        
+
 # If the python node is executed as main process (sourced directly)
 if __name__ == '__main__':
     try:
@@ -89,10 +94,7 @@ if __name__ == '__main__':
 
             # Perform task
             for jackal in jackals:
-                # TODO - implement data acquisition here
                 jackal.do_task_pub.publish(True)
-                rospy.loginfo('{} task: {}'.format(jackal.name, jackal.tasks[i]))
-            rospy.sleep(3)
 
         rospy.loginfo('Finished goal sequence.')
         rospy.sleep(3)

@@ -110,6 +110,27 @@ class JackalGoalServer:
         else:
             rospy.loginfo("{} turn goal already set.".format(self.ns))
 
+    def performTask(self, do_task):
+        if(do_task):
+            if(self.task is None):
+                rospy.loginfo('No task for {} to perform'.format(self.ns))
+            else:
+                rospy.loginfo('{} performing {} task'.format(self.ns, self.task))
+                if(self.task == 'listen'):
+                    # TODO - implement data acquisition
+                    print('listening')
+                    # Reverse from wall 0.5m
+                    driver = DriveStraight()
+                    driver.move(0.5, -0.1)
+                    
+                elif(self.task == 'speak'):
+                    # TODO - implement white noise playing
+                    print('speaking')
+        else:
+            rospy.loginfo('{} not ready to perform task'.format(self.ns))
+            
+        return
+
 
 # If the python node is executed as main process (sourced directly)
 if __name__ == '__main__':
@@ -160,6 +181,12 @@ if __name__ == '__main__':
         task_topic = ns + '/task'
         rospy.Subscriber(task_topic, String,
                          callback=goal_server.set_task)
+        rospy.loginfo('Subscribed to {}'.format(task_topic))
+
+        # Subscribe to task starting topic & set jackal task on new message
+        do_task_topic = ns + '/do_task'
+        rospy.Subscriber(do_task_topic, Bool,
+                         callback=goal_server.performTask)
         rospy.loginfo('Subscribed to {}'.format(task_topic))
 
         # Subscribe to turn goal topic & set the jackal's turn goal
