@@ -36,10 +36,10 @@ class JackalGoalServer:
         self.turn_goal = None
         
         self.res_topic = ns + '/result'
-        self.res_pub = rospy.Publisher(res_topic, Bool, queue_size=1)
+        self.res_pub = rospy.Publisher(self.res_topic, Bool, queue_size=1)
 
         self.turn_topic = ns + '/turn_goal'
-        self.turn_pub = rospy.Publisher(turn_topic, MoveBaseGoal, queue_size=1)
+        self.turn_pub = rospy.Publisher(self.turn_topic, MoveBaseGoal, queue_size=1)
 
     def goal_callback(self, goal):
         '''
@@ -63,7 +63,7 @@ class JackalGoalServer:
             (obj_distance, obj_angle) = findNearestObject()
             turn_goal = Goal2D(0, 0, obj_angle, 'front_laser').to_move_base()
             #TODO - instead of relative angle, convert to a shared frame such as the map
-            self.pose_pub.publish(turn_goal)
+            self.turn_pub.publish(turn_goal)
         elif(self.task == 'speak'):
             if(self.turn_goal is None):
                 rospy.loginfo('{} waiting for turning goal'.format(self.ns))
@@ -100,8 +100,8 @@ class JackalGoalServer:
         return
 
     def set_task(self, task):
-        self.task = task
-        rospy.loginfo("Setting {} task to {}".format(self.ns, task))
+        self.task = task.data
+        rospy.loginfo("Setting {} task to {}".format(self.ns, task.data))
     
     def set_turn_goal(self, goal):
         if(self.turn_goal is None):
@@ -165,7 +165,7 @@ if __name__ == '__main__':
         # Subscribe to turn goal topic & set the jackal's turn goal
         rospy.Subscriber(goal_server.turn_topic, MoveBaseGoal,
                          callback=goal_server.set_turn_goal)
-        rospy.loginfo('Subscribed to {}'.format(jackal.turn_topic))
+        rospy.loginfo('Subscribed to {}'.format(goal_server.turn_topic))
 
         rospy.spin()
 

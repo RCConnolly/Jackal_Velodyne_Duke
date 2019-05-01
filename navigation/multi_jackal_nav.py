@@ -15,6 +15,7 @@ class JackalNavigator:
         self.name = name
         self.goal_pub = rospy.Publisher(name + '/goal', MoveBaseGoal, queue_size=1)
         self.task_pub = rospy.Publisher(name + '/task', String, queue_size=1)
+        self.do_task_pub = rospy.Publisher(name + '/do_task', Bool, queue_size=1)
         self.sub = rospy.Subscriber(name + '/result', Bool, self.resultCallback)
         self.results = []
         self.goals = []
@@ -51,7 +52,8 @@ if __name__ == '__main__':
         tst_right = Goal2D(-3.0, -.8, PI/2, 'map')
         tst_left = Goal2D(-6.0, -2.05, -PI/2, 'map')
         tst_up = Goal2D(-8.2, -1.0, PI, 'map')
-        tst_left2 = Goal2D(-6.0, 1.5, 0.0, 'map')
+        tst_rt_noTurn = Goal2D(-3.0, -.8, PI, 'map')
+        tst_lft_noTurn = Goal2D(-6.0, -2.05, PI, 'map')
 
         # Hudson test goals outside RAMA lab
         listen_1 = Goal2D(-0.25, -1.8, -0.2, 'map')
@@ -60,8 +62,8 @@ if __name__ == '__main__':
         speak_2 = Goal2D(-0.5, -4.2, 3, 'map')
 
         # Jackal acoustic IM goals and tasks
-        jackals[0].addGoals([listen_1, speak_2])
-        jackals[0].addTasks(['listen', 'speak'])
+        jackals[0].addGoals([tst_rt_noTurn, tst_lft_noTurn])
+        jackals[0].addTasks(['listen', 'listen'])
         if(len(jackals) > 1):
             jackals[1].addGoals([speak_1, listen_2])
             jackals[1].addTasks(['speak', 'listen'])
@@ -87,6 +89,8 @@ if __name__ == '__main__':
 
             # Perform task
             for jackal in jackals:
+                # TODO - implement data acquisition here
+                jackal.do_task_pub.publish(True)
                 rospy.loginfo('{} task: {}'.format(jackal.name, jackal.tasks[i]))
             rospy.sleep(3)
 
