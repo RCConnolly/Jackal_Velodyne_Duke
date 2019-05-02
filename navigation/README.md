@@ -122,7 +122,7 @@ args="0 0 0 0 0 0 velodyne font_laser 100" />
 Part two: Mapping
 -----
 
-  Once the `odom_navigation.launch` is working with static and dynamic collision avoidance. You may move the second part of the navigation task, i.e., to make a map using `gmapping`. This part corresponds to the **MAKING A MAP** part of [official Jackal navigation](https://www.clearpathrobotics.com/assets/guides/jackal/navigation.html).
+  Once the `odom_navigation.launch` is working with static and dynamic collision avoidance. You may move the second part of the navigation task, i.e., to make a map using `gmapping`. This part corresponds to the [__MAKING A MAP__](http://www.clearpathrobotics.com/assets/guides/jackal/navigation.html#making-a-map) part of [official Jackal navigation](https://www.clearpathrobotics.com/assets/guides/jackal/navigation.html).
 
   First you need to launch the `pointcloud2laser.launch` file from [here](../point2laser.launch). Then you can launch the `gmapping_demo.launch` from the [Jackal navigation package](https://github.com/jackal/jackal/tree/indigo-devel/jackal_navigation) at the Jackal onboard computer:
 
@@ -151,7 +151,7 @@ Part two: Mapping
 Part three: Localization
 -----
 
-  Once you have created a static global map `workspace.yaml`. You may move the third part of the navigation task, i.e., to self-localization using `amcl`. This part corresponds to the **NAVIGATION WITH A MAP** part of [official Jackal navigation](https://www.clearpathrobotics.com/assets/guides/jackal/navigation.html).
+  Once you have created a static global map `workspace.yaml`. You may move the third part of the navigation task, i.e., to self-localization using `amcl`. This part corresponds to the [__NAVIGATION WITH A MAP__](http://www.clearpathrobotics.com/assets/guides/jackal/navigation.html#navigation-with-a-map) part of [official Jackal navigation](https://www.clearpathrobotics.com/assets/guides/jackal/navigation.html).
 
   First you need to launch the `pointcloud2laser.launch` file from [here](../point2laser.launch). Then you can launch the `amcl_demo.launch` from the [Jackal navigation package](https://github.com/jackal/jackal/tree/indigo-devel/jackal_navigation) at the Jackal onboard computer:
 
