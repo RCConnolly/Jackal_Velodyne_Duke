@@ -180,11 +180,14 @@ Navigating a robot within a saved map can be accomplished with the following ste
   cd jackal_catkin_ws/src/Jackal_Velodyne_Duke/navigation/
   ./multi_jackal_nav.py Jackal1 Jackal2
   ```
+  
+  ## Multiple Jackals Real-World
+
 
 # Troubleshooting
 
-check that dekstop's IP matches on each Jackal
-catkin_make
-restart Jackal
-check that correct Github branch is being used and git pull to update any files that were updated remotely
-jackal-fender.stl to jackal-fenders.stl during Gazebo or RViz simulation
+* check that dekstop's IP matches on each Jackal
+* catkin_make
+* restart Jackal
+* check that correct Github branch is being used and git pull to update any files that were updated remotely
+* jackal-fender.stl to jackal-fenders.stl during Gazebo or RViz simulation
