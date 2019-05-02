@@ -34,7 +34,7 @@ The above packages should allow for visualization and autonomous navigation of a
 
 ## Jackal Initial-Setup
 
-Now follow the [initial set-up procedure](../../../#jackal-initial-setup) for each Jackal.
+If not already completed, follow the [initial set-up procedure](../../../#jackal-initial-setup) for each Jackal.
 
 Next, complete each section listed on the [single jackal navigation](../../README.md) page. This ensures that the _pointcloud2laserscan_ package is installed and that each Jackal is properly configured for autonomous navigation.
 
@@ -145,13 +145,22 @@ The details of each of these steps are described in the sections below, specific
 
 ## Single Jackal Simulation
 
-A single robot can be simulated in a virtual environment and sent goals with the _multi_robot_nav.py_ script. Clearpath Robotics provides [instructions](http://www.clearpathrobotics.com/assets/guides/jackal/simulation.html) for simulating the Jackal in a Gazebo 3D environment. Once the necessary simulation packages are installed, follow the [navigation instructions](http://www.clearpathrobotics.com/assets/guides/jackal/navigation.html) published by Clearpath Robotics to set-up the simulated environment. The _multi_jackal_nav.py_ script can then be used to send a sequence of goal commands to the simulated Jackal.
+A single robot can be simulated in a virtual environment and sent goals with the _multi_robot_nav.py_ script. Clearpath Robotics provides [instructions](http://www.clearpathrobotics.com/assets/guides/jackal/simulation.html) for simulating the Jackal in a Gazebo 3D environment. The Jackal can be simulated with Gazebo, visualized with RViz, and send navigation commands via the_multi_jackal_nav.py_ script with the following commands:
+
+```
+roslaunch jackal_gazebo jackal_world.launch config:=front_laser
+roslaunch jackal_navigation amcl_demo.launch
+cd jackal_catkin_ws/src/Jackal_Velodyne_Duke/navigation
+./jackal_goal_server Jackal1
+roslaunch jackal_viz view_robot.launch config:=localization
+./multi_jackal_nav Jackal1
+```
 
 ## Single Jackal Real-World
 
 Navigating a robot within a saved map can be accomplished with the following steps. Note that each command needs to be run in an individual terminal window, and the commands listed as "on Jackal" should be run by first ssh'ing into that Jackal. The specific commands are for the Jackal-1 robot, but can be used for the Jackal-2 robot by replacing `Jackal1` with `Jackal2`.
 
-  1. (on desktop) Tell the desktop to discover the necessary nodes for navigating two jackals: 
+  1. (on workstation) Tell the desktop to discover the necessary nodes for navigating two jackals: 
   ```
   roslaunch jackal_velodyne_duke jackal_discovery.launch dual_discover:=true
   ```
@@ -171,7 +180,7 @@ Navigating a robot within a saved map can be accomplished with the following ste
   ```
   roslaunch jackal_velodyne_duke desktop_sync.launch jackal_name:=Jackal1
   ```
-  6. (on desktop) Sync topics from Jackals: 
+  6. (on workstation) Sync topics from Jackals: 
   ```
   roslaunch jackal_velodyne_duke jackal_sync.launch dual_sync:=true
   ```
@@ -182,7 +191,30 @@ Navigating a robot within a saved map can be accomplished with the following ste
   ```
   
   ## Multiple Jackals Real-World
+  
+Navigating two robots simulatenously within a saved map can be accomplished with the following steps. Note that each command needs to be run in an individual terminal window, and the commands listed as "On Jackal" should be run by first ssh'ing into that Jackal.
 
+Note that the x, y, yaw_rad specified in the velodyne_amcl.launch file specify the pose to intialize within the _hudson_back_test.yaml_ map.
+
+On Workstation:
+```
+roslaunch jackal_velodyne_duke jackal_discovery.launch dual_discover:=true
+```
+On Jackal1: 
+```
+roslaunch jackal_velodyne_duke velodyne_amcl.launch robot_name:=Jackal1 x:=0 y:=0 yaw_rad:=-1.7 discovery:=true
+roslaunch jackal_velodyne_duke desktop_sync.launch jackal_name:=Jackal1
+```
+On Jackal2:
+```
+roslaunch jackal_velodyne_duke velodyne_amcl.launch robot_name:=Jackal2 x:=-1 y:=0.23 yaw_rad:=-1.7 discovery:=true
+roslaunch jackal_velodyne_duke desktop_sync.launch jackal_name:=Jackal2
+```
+On Workstation: 
+```
+roslaunch jackal_velodyne_duke jackal_sync.launch dual_sync:=true
+./multi_jackal_nav.py Jackal1 Jackal2
+```
 
 # Troubleshooting
 
