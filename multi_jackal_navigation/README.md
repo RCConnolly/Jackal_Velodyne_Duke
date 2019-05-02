@@ -218,8 +218,19 @@ roslaunch jackal_velodyne_duke jackal_sync.launch dual_sync:=true
 
 # Troubleshooting
 
-* check that dekstop's IP matches on each Jackal
-* catkin_make
-* restart Jackal
-* check that correct Github branch is being used and git pull to update any files that were updated remotely
-* jackal-fender.stl to jackal-fenders.stl during Gazebo or RViz simulation
+There are a few general checks that you should make when encountering an error. Often times, the errors that arise with these issues are not indicative of the actual problem.
+
+1. If any changes have been made to any of the packages within the catkin worskpace that require updating dependencies or rebuilding executables (not including changes to a python script), then be sure to re-make the catkin workspace.
+
+```
+cd ~/catkin_ws # or ~/jackal_catkin_ws for the workstation
+catkin_make
+```
+
+2. The two Jackals have their IP's set to static on Duke's network, however, the workstation IP is non-static. Therefore, whenever the computer restarts or turn on after a shutdown, its IP may have changes. Ensure that the IP address of each computer is correct in each of the computer's /etc/hosts file.
+
+3. Since several ROS nodes are created on start-up of the robot, any changes to these nodes will require a restart to the Jackal.
+
+4. Several of the packages, including this jackal_velodyne_duke package, are cloned GitHub repositories. Therefore, there may be several development branches that differ between another. Always ensure that you are on the correct Github branch, which can be checked with the command `git branch` and that the branch is up-to-date with `git pull`.
+
+5. Occasionally when running RVIz or the Gazebo simulation, the top of the Jackal will not be visualized and a corresponding error is printed to the terminal saying that _jackal-fenders.stl_ cannot be located. This is because on older versions of the jackal description package, this file is named _jackal_fender.stl_. If this error occurs, simply switch the name of the _jackal-fender.stl_ file to _jackal-fenders.stl_.
