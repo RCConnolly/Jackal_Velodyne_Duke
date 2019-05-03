@@ -8,7 +8,7 @@ from move_base_client import MoveBaseClient
 from move_base_msgs.msg import MoveBaseGoal, MoveBaseActionResult
 from odom_drive_to_wall import DriveStraight
 from nav_module import findNearestObject, Goal2D
-from geometry_msgs.msg import PoseWithCovarianceStamped
+from geometry_msgs.msg import PoseWithCovarianceStamped, Quaternion
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
 import tf
 
@@ -39,7 +39,7 @@ class JackalGoalServer:
         self.task_res_pub = rospy.Publisher(ns + '/task_result', Bool, queue_size=1)
 
         self.turn_topic = '/turn_goal'
-        self.turn_pub = rospy.Publisher(self.turn_topic, MoveBaseGoal, queue_size=1)
+        self.turn_pub = rospy.Publisher(self.turn_topic, Quaternion, queue_size=1)
 
     def goal_callback(self, goal):
         '''
@@ -60,9 +60,9 @@ class JackalGoalServer:
 
         # Rotate toward sample
         if(self.task == 'listen'):
+            # Listener uses LiDAR to determine turning direction
             (obj_distance, obj_angle) = findNearestObject()
-            # TODO - Convert to map rotation in map coordinates
-            # Find quaternion transform from front_laser to map
+            
             # Initialize the tf listener
             tf_listener = tf.TransformListener()
             # Give tf some time to fill its buffer
@@ -71,20 +71,14 @@ class JackalGoalServer:
             source_frame = 'front_laser'
             target_frame = 'map'
 
-            # Get the current transform between the odom and base frames
+            # Get the current transform between the front_laser and map frame
             try:
                 (trans, rot) = tf_listener.lookupTransform(target_frame, source_frame, rospy.Time(0))
             except (tf.Exception, tf.ConnectivityException, tf.LookupException):
                 rospy.loginfo("TF Exception")
                 return
 
-            # Convert to euler
-            roll, pitch, yaw = euler_from_quaternion(rot)
-            x, y, _ = trans
-
-            # Publish goal to the /turn_goal topic
-            turn_goal = Goal2D(x, y, yaw + obj_angle, 'map').to_move_base()
-            self.turn_pub.publish(turn_goal)
+            self.turn_pub.publish(rot)
 
         elif(self.task != 'speak'):
             rospy.loginfo("Didn't receive valid task to perform, continuing to next goal.")
@@ -93,7 +87,6 @@ class JackalGoalServer:
             self.goal_res_pub.publish(reached_goal)
             return
         
-
         if(self.turn_goal is None):
             wait_time = 20.0
             start_t = rospy.get_rostime()
@@ -109,7 +102,28 @@ class JackalGoalServer:
             return
         
         rospy.loginfo('Turning toward sample...')
-        turn_res = mb_client.send_goal(self.turn_goal)
+        # Initialize the tf listener
+        tf_listener = tf.TransformListener()
+        # Give tf some time to fill its buffer
+        rospy.sleep(2)
+
+        source_frame = 'base_link'
+        target_frame = 'map'
+
+        # Get the current transform between the base_link and map frame
+        try:
+            (trans, rot) = tf_listener.lookupTransform(target_frame, source_frame, rospy.Time(0))
+        except (tf.Exception, tf.ConnectivityException, tf.LookupException):
+            rospy.loginfo("TF Exception")
+            return
+        goal_x, goal_y, _ = trans
+
+        # Convert turn goal  euler
+        _, _, goal_yaw = euler_from_quaternion(self.turn_goal)
+         
+        turn_res = mb_client.send_goal(Goal2D(goal_x, goal_y, goal_yaw,
+                                              'map').to_move_base())
+        
         if(turn_res):
             rospy.loginfo("Turned toward nearest sample")
 
@@ -221,7 +235,7 @@ if __name__ == '__main__':
         rospy.loginfo('Subscribed to {}'.format(do_task_topic))
 
         # Subscribe to turn goal topic & set the jackal's turn goal
-        rospy.Subscriber(goal_server.turn_topic, MoveBaseGoal,
+        rospy.Subscriber(goal_server.turn_topic, Quaternion,
                          callback=goal_server.set_turn_goal)
         rospy.loginfo('Subscribed to {}'.format(goal_server.turn_topic))
 
