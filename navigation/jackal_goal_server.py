@@ -239,9 +239,9 @@ if __name__ == '__main__':
         rospy.loginfo('Subscribed to {}'.format(do_task_topic))
 
         # Subscribe to turn goal topic & set the jackal's turn goal
-        rospy.Subscriber(goal_server.turn_topic, Quaternion,
+        rospy.Subscriber('/turn_goal', Quaternion,
                          callback=goal_server.set_turn_goal)
-        rospy.loginfo('Subscribed to {}'.format(goal_server.turn_topic))
+        rospy.loginfo('Subscribed to {}'.format('/turn_goal'))
 
         rospy.spin()
 
