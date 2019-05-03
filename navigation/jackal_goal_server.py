@@ -2,15 +2,15 @@
 
 import rospy
 import sys
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool, String
 from actionlib_msgs.msg import GoalStatus
 from move_base_client import MoveBaseClient
 from move_base_msgs.msg import MoveBaseGoal, MoveBaseActionResult
 from odom_drive_to_wall import DriveStraight
 from nav_module import findNearestObject, Goal2D
 from geometry_msgs.msg import PoseWithCovarianceStamped
-from tf.transformations import quaternion_from_euler
-
+from tf.transformations import quaternion_from_euler, euler_from_quaternion
+import tf
 
 def SendInitialPose(InitialPosePublisher, initial_pose):
     # goal: [x, y, yaw]
@@ -32,9 +32,15 @@ def SendInitialPose(InitialPosePublisher, initial_pose):
 class JackalGoalServer:
     def __init__(self, ns):
         self.ns = ns
-        res_topic = ns + '/result'
-        self.pub = rospy.Publisher(res_topic, Bool, queue_size=1)
+        self.task = None
+        self.turn_goal = None
         
+        self.goal_res_pub = rospy.Publisher( ns + '/move_result', Bool, queue_size=1)
+        self.task_res_pub = rospy.Publisher(ns + '/task_result', Bool, queue_size=1)
+
+        self.turn_topic = '/turn_goal'
+        self.turn_pub = rospy.Publisher(self.turn_topic, MoveBaseGoal, queue_size=1)
+
     def goal_callback(self, goal):
         '''
         goal is of type MoveBaseActionGoal
@@ -47,30 +53,114 @@ class JackalGoalServer:
             rospy.loginfo("Sucessfully reached target area.")
         else:
             rospy.logerr("{} unable to reach goal".format(self.ns))
-            self.pub.publish(False)
-        '''
-        driver = DriveStraight()
+            self.task = None
+            self.turn_goal = None
+            self.goal_res_pub.publish(False)
+            return
 
-        # Rotate toward wall
-        (obj_distance, obj_angle) = findNearestObject()
-        turn_goal = Goal2D(0, 0, obj_angle, 'front_laser')
-        turn_res = mb_client.send_goal(turn_goal.to_move_base())
-        if turn_res.status == GoalStatus.SUCCEEDED:
+        # Rotate toward sample
+        if(self.task == 'listen'):
+            (obj_distance, obj_angle) = findNearestObject()
+            # TODO - Convert to map rotation in map coordinates
+            # Find quaternion transform from front_laser to map
+            # Initialize the tf listener
+            tf_listener = tf.TransformListener()
+            # Give tf some time to fill its buffer
+            rospy.sleep(2)
+
+            source_frame = 'front_laser'
+            target_frame = 'map'
+
+            # Get the current transform between the odom and base frames
+            try:
+                (trans, rot) = tf_listener.lookupTransform(target_frame, source_frame, rospy.Time(0))
+            except (tf.Exception, tf.ConnectivityException, tf.LookupException):
+                rospy.loginfo("TF Exception")
+                return
+
+            # Convert to euler
+            roll, pitch, yaw = euler_from_quaternion(rot)
+            x, y, _ = trans
+
+            # Publish goal to the /turn_goal topic
+            turn_goal = Goal2D(x, y, yaw + obj_angle, 'map').to_move_base()
+            self.turn_pub.publish(turn_goal)
+
+        elif(self.task != 'speak'):
+            rospy.loginfo("Didn't receive valid task to perform, continuing to next goal.")
+            self.task = None
+            self.turn_goal = None
+            self.goal_res_pub.publish(reached_goal)
+            return
+        
+
+        if(self.turn_goal is None):
+            wait_time = 20.0
+            start_t = rospy.get_rostime()
+            rospy.loginfo('{} waiting {} for turning goal'.format(self.ns, wait_time))
+            while((self.turn_goal is None) and 
+                  ((rospy.get_rostime() - start_t) < wait_time)):
+                continue
+
+        if(self.turn_goal is None):
+            rospyloginfo('No turn goal received for {}'.format(self.ns))
+            self.task = None
+            self.goal_res_pub.publish(False)
+            return
+        
+        rospy.loginfo('Turning toward sample...')
+        turn_res = mb_client.send_goal(self.turn_goal)
+        if(turn_res):
             rospy.loginfo("Turned toward nearest sample")
 
-        # Drive to wall
-        wall_separation = 0.012
-        dist_to_robo_front = 0.21
-        laser_range_acc = 0.03
-        dist_buff = 0.1
-        goal_distance = (obj_distance - wall_separation -
-                         dist_to_robo_front - laser_range_acc -
-                         dist_buff)
-        driver.move(goal_distance)
-        rospy.loginfo("Drove toward nearest sample")
-        '''
+            # Drive to wall
+            if(self.task == 'listen'):
+                driver = DriveStraight()
+                wall_separation = 0.012
+                dist_to_robo_front = 0.21
+                laser_range_acc = 0.03
+                dist_buff = 0.1
+                goal_distance = (obj_distance - dist_to_robo_front)
+                driver.move(goal_distance)
+                rospy.loginfo("Drove toward nearest sample")
 
-        self.pub.publish(reached_goal)
+        self.turn_goal = None
+        self.goal_res_pub.publish(turn_res)
+        return
+
+    def set_task(self, task):
+        self.task = task.data
+        rospy.loginfo("Setting {} task to {}".format(self.ns, task.data))
+    
+    def set_turn_goal(self, goal):
+        if(self.turn_goal is None):
+            self.turn_goal = goal
+            rospy.loginfo("Setting turn goal for {}.".format(self.ns))
+        else:
+            rospy.loginfo("{} turn goal already set.".format(self.ns))
+
+    def performTask(self, do_task):
+        if(do_task):
+            if(self.task is None):
+                rospy.loginfo('No task for {} to perform'.format(self.ns))
+            else:
+                rospy.loginfo('{} performing {} task'.format(self.ns, self.task))
+                if(self.task == 'listen'):
+                    # TODO - implement data acquisition instead of sleeping
+                    rospy.loginfo('listening...')
+                    rospy.sleep(3.0)
+                    # Reverse from wall 0.5m
+                    driver = DriveStraight()
+                    driver.move(0.5, -0.1)
+                elif(self.task == 'speak'):
+                    # TODO - implement white noise playing
+                    rospy.loginfo('speaking')
+                    rospy.sleep(3.0)
+                self.task_res_pub.publish(True)
+        else:
+            rospy.loginfo('{} not ready to perform task'.format(self.ns))
+            
+        return
 
 
 # If the python node is executed as main process (sourced directly)
@@ -117,6 +207,24 @@ if __name__ == '__main__':
         rospy.Subscriber(goal_topic, MoveBaseGoal,
                          callback=goal_server.goal_callback)
         rospy.loginfo('Subscribed to {}'.format(goal_topic))
+
+        # Subscribe to task topic &  set jackal task on new message
+        task_topic = ns + '/task'
+        rospy.Subscriber(task_topic, String,
+                         callback=goal_server.set_task)
+        rospy.loginfo('Subscribed to {}'.format(task_topic))
+
+        # Subscribe to task starting topic & set jackal task on new message
+        do_task_topic = ns + '/do_task'
+        rospy.Subscriber(do_task_topic, Bool,
+                         callback=goal_server.performTask)
+        rospy.loginfo('Subscribed to {}'.format(do_task_topic))
+
+        # Subscribe to turn goal topic & set the jackal's turn goal
+        rospy.Subscriber(goal_server.turn_topic, MoveBaseGoal,
+                         callback=goal_server.set_turn_goal)
+        rospy.loginfo('Subscribed to {}'.format(goal_server.turn_topic))
+
         rospy.spin()
 
     except rospy.ROSInterruptException:
