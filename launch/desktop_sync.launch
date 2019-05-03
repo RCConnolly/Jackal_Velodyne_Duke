@@ -1,6 +1,6 @@
 <launch>
   
   <arg name="jackal_name" />
-  <node name="master_sync" pkg="master_sync_fkie" type="master_sync" output="screen" args="_sync_topics:=[/$(arg jackal_name)/goal,/$(arg jackal_name)/result/,/$(arg jackal_name)/do_task, /turn_goal]" />
+  <node name="master_sync" pkg="master_sync_fkie" type="master_sync" output="screen" args="_sync_topics:=[/$(arg jackal_name)/goal,/$(arg jackal_name)/result,/$(arg jackal_name)/do_task,/turn_goal]" />
 
 </launch>
