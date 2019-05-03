@@ -35,10 +35,10 @@ class JackalGoalServer:
         self.task = None
         self.turn_goal = None
         
-        self.goal_res_pub = rospy.Publisher( ns + '/move_result', Bool, queue_size=1)
+        self.goal_res_pub = rospy.Publisher(ns + '/move_result', Bool, queue_size=1)
         self.task_res_pub = rospy.Publisher(ns + '/task_result', Bool, queue_size=1)
 
-        self.turn_topic = '/turn_goal'
+        self.turn_topic = ns + '/turn_goal'
         self.turn_pub = rospy.Publisher(self.turn_topic, Quaternion, queue_size=1)
 
     def goal_callback(self, goal):
