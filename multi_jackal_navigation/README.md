@@ -14,7 +14,7 @@ This workstation for project was set-up using Ubuntu 14.04 with ROS Indigo. Be s
 
 1. Install & Configure ROS - after installation of ROS Indigo, create a catkwin worspace to develop in by following these [instructions](http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment)
 
-2. Install Jackal specific ROS metapackages for simulating the robot with Gazebo and visualizing with Rviz 
+2. Install Jackal specific ROS metapackages for simulating the robot with Gazebo and visualizing with Rviz. Note that if you plan to make any modifications to the default Jackal navigation parameters as described [here](), then you should clone the jackal-navigation package from [here](https://github.com/jackal/jackal/tree/indigo-devel) instead of installing the binary executables using sudo apt-get as written in the command below.
 
     ```
     sudo apt-get install ros-indigo-jackal-simulator ros-indigo-jackal-desktop ros-indigo-jackal-navigation
@@ -34,7 +34,7 @@ The above packages should allow for visualization and autonomous navigation of a
 
 ## Jackal Initial-Setup
 
-If not already completed, follow the [initial set-up procedure](../../../#jackal-initial-setup) for each Jackal.
+If not already completed, follow the [initial set-up procedure](../../../#jackal-initial-setup) for each Jackal. In addition, steps 3 and 4 from the previous section should also be completed on each Jackal to ensure that this repository is available and that multi-master is installed.
 
 Next, complete each section listed on the [single jackal navigation](../../README.md) page. This ensures that the _pointcloud2laserscan_ package is installed and that each Jackal is properly configured for autonomous navigation.
 
