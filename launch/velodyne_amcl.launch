@@ -18,6 +18,12 @@
 
   <!-- Discover desktop master if discovery argument is true -->
   <arg name="discovery" default="true" />
-  <include file="$(find jackal_velodyne_duke)/launch/desktop_discovery.launch" if="$(arg discovery)" />
+  <!-- Also discovers other Jackal master if dual_discover argument is true -->
+  <arg name="dual_discover" default="false" />
+  <arg name="jackal_host" />
+  <include file="$(find jackal_velodyne_duke)/launch/desktop_discovery.launch" if="$(arg discovery)">
+  	   <arg name="dual_discover" value="$(arg dual_discover)" />
+	   <arg name="jackal_host" value="$(arg jackal_host)" />
+  </include>
   
 </launch>
