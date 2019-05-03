@@ -73,9 +73,11 @@ if __name__ == '__main__':
         listen_2 = Goal2D(-1.6, -3.7, 3, 'map')
         speak_1 = Goal2D(-1.4, -1.6, -0.2, 'map')
         speak_2 = Goal2D(-0.5, -4.2, 3, 'map')
+        listen_1_noTurn = Goal2D(-0.25, -1.8, -PI/2, 'map')
+        listen_2_noTurn = Goal2D(-1.4, -3.7, -PI/2, 'map')
 
         # Jackal acoustic IM goals and tasks
-        jackals[0].addGoals([tst_rt_noTurn, tst_lft_noTurn])
+        jackals[0].addGoals([listen_1_noTurn, listen_2_noTurn])
         jackals[0].addTasks(['listen', 'listen'])
         if(len(jackals) > 1):
             jackals[1].addGoals([speak_1, listen_2])
