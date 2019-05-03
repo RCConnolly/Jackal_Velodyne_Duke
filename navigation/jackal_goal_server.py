@@ -77,8 +77,11 @@ class JackalGoalServer:
             except (tf.Exception, tf.ConnectivityException, tf.LookupException):
                 rospy.loginfo("TF Exception")
                 return
+            _, _, cur_yaw = euler_from_quaternion(rot)
+            goal_yaw = cur_yaw + obj_angle
 
-            self.turn_pub.publish(rot)
+            q_x, q_y, q_z, q_w = quaternion_from_euler(0,0,goal_yaw)
+            self.turn_pub.publish(Quaternion(q_x, q_y, q_z, q_w))
 
         elif(self.task != 'speak'):
             rospy.loginfo("Didn't receive valid task to perform, continuing to next goal.")
@@ -88,11 +91,11 @@ class JackalGoalServer:
             return
         
         if(self.turn_goal is None):
-            wait_time = 20.0
+            wait_dur = rospy.Duration(secs=20.0)
             start_t = rospy.get_rostime()
-            rospy.loginfo('{} waiting {} for turning goal'.format(self.ns, wait_time))
+            rospy.loginfo('{} waiting {} for turning goal'.format(self.ns, 20.0))
             while((self.turn_goal is None) and 
-                  ((rospy.get_rostime() - start_t) < wait_time)):
+                  ((rospy.get_rostime() - start_t) < wait_dur)):
                 continue
 
         if(self.turn_goal is None):
@@ -118,8 +121,9 @@ class JackalGoalServer:
             return
         goal_x, goal_y, _ = trans
 
-        # Convert turn goal  euler
-        _, _, goal_yaw = euler_from_quaternion(self.turn_goal)
+        # Convert turn goal to euler
+        quat = self.turn_goal
+        _, _, goal_yaw = euler_from_quaternion([quat.x, quat.y, quat.z, quat.w])
          
         turn_res = mb_client.send_goal(Goal2D(goal_x, goal_y, goal_yaw,
                                               'map').to_move_base())
