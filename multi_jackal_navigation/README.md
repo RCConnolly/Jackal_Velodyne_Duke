@@ -149,10 +149,16 @@ A single robot can be simulated in a virtual environment and sent goals with the
 
 ```
 roslaunch jackal_gazebo jackal_world.launch config:=front_laser
+
 roslaunch jackal_navigation amcl_demo.launch
+
 cd jackal_catkin_ws/src/Jackal_Velodyne_Duke/navigation
 ./jackal_goal_server Jackal1
+
+# Optional for visualization
 roslaunch jackal_viz view_robot.launch config:=localization
+
+cd jackal_catkin_ws/src/Jackal_Velodyne_Duke/navigation
 ./multi_jackal_nav Jackal1
 ```
 
@@ -183,23 +189,36 @@ Navigating two robots simulatenously within a saved map can be accomplished with
 
 Note that the x, y, yaw_rad specified in the velodyne_amcl.launch file specify the pose to intialize within the _hudson_back_test.yaml_ map.
 
+__Make sure that these steps are executed in the order listed.__ If one of the Jackals syncs to the desktop before the other Jackal has initialized its nodes and discovered the desktop, then nodes on one Jackal will appear duplicated by those on the other causing them to shutdown.
+
 On Workstation: Tell the desktop to discover the necessary topics for navigating two jackals
 ```
 roslaunch jackal_velodyne_duke jackal_discovery.launch dual_discover:=true
 ```
-On Jackal1: Convert pointcloud messages to 2D laserscans, launch the amcl localiztion node, launch the Jackal's goal server, and discover the desktop's master node. Then sync topics with the desktop.
+On Jackal1: Convert pointcloud messages to 2D laserscans, launch the amcl localiztion node, launch the Jackal's goal server, and discover the desktop's master node.
 ```
 roslaunch jackal_velodyne_duke velodyne_amcl.launch robot_name:=Jackal1 x:=0 y:=0 yaw_rad:=-1.7 discovery:=true
-roslaunch jackal_velodyne_duke desktop_sync.launch jackal_name:=Jackal1
 ```
-On Jackal2: Same as the previouse two commands, but for Jackal2 with a different initialization position.
+On Jackal2: Same as the previous command, but for Jackal2 with a different initialization position.
 ```
 roslaunch jackal_velodyne_duke velodyne_amcl.launch robot_name:=Jackal2 x:=-1 y:=0.23 yaw_rad:=-1.7 discovery:=true
+```
+On Jackal1: Sync the necessary topics from the desktop.
+```
+roslaunch jackal_velodyne_duke desktop_sync.launch jackal_name:=Jackal1
+```
+On Jackal2: Sync the necessary topics from the desktop.
+```
 roslaunch jackal_velodyne_duke desktop_sync.launch jackal_name:=Jackal2
 ```
-On Workstation: Sync the topics from both Jackals. Then run the navigation script that coordinates navigation commands to the Jackals. Note that each goal location is specified within this file, so ensure that the goals match the map you are localized into
+
+On Workstation: Sync the necessary topics from both Jackals. 
 ```
 roslaunch jackal_velodyne_duke jackal_sync.launch dual_sync:=true
+```
+Run the navigation script that coordinates navigation commands to the Jackals. Note that each goal location is specified within this file, so ensure that the goals match the map you are localized into.
+```
+cd ~/jackal_catkin_ws/src/Jackal_Velodyne_Duke/navigation
 ./multi_jackal_nav.py Jackal1 Jackal2
 ```
 
