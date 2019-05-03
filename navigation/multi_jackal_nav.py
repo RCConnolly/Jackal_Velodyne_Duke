@@ -26,7 +26,8 @@ class JackalNavigator:
         self.task_res_sub = rospy.Subscriber(name + '/task_result', Bool,
                                     self.taskCallback)
         self.turn_sub = rospy.Subscriber(name + '/turn_goal', Quaternion, self.turnCallback)
-
+        self.turn_pub = rospy.Publisher('/turn_goal', Quaternion, queue_size=1)
+        
         self.goals = []
         self.tasks = []
         self.finished_goals = 0
@@ -53,6 +54,9 @@ class JackalNavigator:
     def addTasks(self, tasks):
         for task in tasks:
             self.tasks.append(task)
+
+    def turnCallback(self, turn):
+        self.turn_pub.publish(turn)
     
 
 # If the python node is executed as main process (sourced directly)
