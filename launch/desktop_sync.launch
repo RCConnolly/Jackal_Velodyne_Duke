@@ -3,7 +3,7 @@
   <arg name="jackal_name" />
   <arg name="is_turn_topic_host" />
 
-  <node name="master_sync" pkg="master_sync_fkie" type="master_sync" output="screen" unless="$(is_turn_topic_host)" args="_sync_topics:=[/$(arg jackal_name)/goal,/$(arg jackal_name)/result,/$(arg jackal_name)/do_task,/turn_goal]" />
-  <node name="master_sync" pkg="master_sync_fkie" type="master_sync" output="screen" if="$(is_turn_topic_host)" args="_sync_topics:=[/$(arg jackal_name)/goal,/$(arg jackal_name)/result,/$(arg jackal_name)/do_task]" />
+  <node name="master_sync" pkg="master_sync_fkie" type="master_sync" output="screen" unless="$(arg is_turn_topic_host)" args="_sync_topics:=[/$(arg jackal_name)/goal,/$(arg jackal_name)/result,/$(arg jackal_name)/do_task,/turn_goal]" />
+  <node name="master_sync" pkg="master_sync_fkie" type="master_sync" output="screen" if="$(arg is_turn_topic_host)" args="_sync_topics:=[/$(arg jackal_name)/goal,/$(arg jackal_name)/result,/$(arg jackal_name)/do_task]" />
 
 </launch>
