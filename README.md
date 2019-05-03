@@ -30,5 +30,3 @@ Navigation
 -----
 
 There are two types of navigation procedures that can be performed. The first is navigating a single Jackal robot and using RViz on a desktop to visualize it's sensed environment and send commands to the robot. The second is performing simultaneous navigation of two Jackal robot's using the desktop as a ground station computer that interacts with each robot. Details regarding each of these navigation procedures are located in their repsective folders, namely [navigation](navigation) and [multi_jackal_navigation](multi_jackal_navigation).
-
- 

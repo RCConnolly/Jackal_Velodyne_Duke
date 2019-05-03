@@ -1,0 +1,8 @@
+<launch>
+  <arg name="desktop_host" default="ramaDesktop" />
+  
+  <!-- Discover master node on desktop -->
+  <node name="master_discovery" pkg="master_discovery_fkie" type="master_discovery" output="screen" args="_robot_hosts:=[$(arg desktop_host)]" />
+  
+</launch>
+       

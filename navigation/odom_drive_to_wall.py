@@ -30,7 +30,7 @@ class DriveStraight:
         
     def move(self, goal_distance, linear_speed=0.10):
 
-        rospy.loginfo('Moving a distance of {} at speed {}'
+        rospy.loginfo('Driving straight a distance of {} at speed {}'
                       .format(goal_distance, linear_speed))
 
         # Controls looping rate with rospy.sleep
@@ -67,7 +67,7 @@ class DriveStraight:
                             math.pow((cur_pos.y - y_start), 2))
 
         if(distance >= goal_distance):
-            rospy.loginfo('Finished moving')
+            rospy.loginfo('Finished driving straight')
 
         # Stop the robot
         self.cmd_vel.publish(Twist())

@@ -1,0 +1,10 @@
+<launch>
+  <arg name="first_name" default="Jackal1" />
+  <arg name="second_name" default="Jackal2" />
+  <arg name="dual_sync" default="false" />
+
+  <node name="master_sync" pkg="master_sync_fkie" type="master_sync" output="screen" unless="$(arg dual_sync)" args="_sync_nodes:=[/$(arg first_name)_goal_server] _ignore_topics:=[/initialpose]" />
+
+  <node name="master_sync" pkg="master_sync_fkie" type="master_sync" output="screen" if="$(arg dual_sync)" args="_sync_nodes:=[/$(arg first_name)_goal_server,/$(arg second_name)_goal_server] _ignore_topics:=[/initialpose]" />
+
+</launch>
