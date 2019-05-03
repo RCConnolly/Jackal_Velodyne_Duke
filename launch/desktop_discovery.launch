@@ -1,13 +1,8 @@
 <launch>
   <arg name="desktop_host" default="ramaDesktop" />
-  <arg name="dual_discover" default="false" />
-  <arg name="jackal_host" />
   
   <!-- Discover master node on desktop -->
-  <node name="master_discovery" pkg="master_discovery_fkie" type="master_discovery" output="screen" unless="$(arg dual_discover)" args="_robot_hosts:=[$(arg desktop_host)]" />
-
-  <!-- Discover master node on desktop and other Jackal -->
-  <node name="master_discovery" pkg="master_discovery_fkie" type="master_discovery" output="screen" if="$(arg dual_discover)" args="_robot_hosts:=[$(arg desktop_host),$(arg jackal_host)]" />
+  <node name="master_discovery" pkg="master_discovery_fkie" type="master_discovery" output="screen" args="_robot_hosts:=[$(arg desktop_host)]" />
   
 </launch>
        

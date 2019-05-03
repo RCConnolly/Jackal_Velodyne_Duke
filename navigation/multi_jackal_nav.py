@@ -6,6 +6,7 @@ from nav_module import Goal2D
 from move_base_msgs.msg import MoveBaseGoal
 from move_base_msgs.msg import MoveBaseActionGoal, MoveBaseActionResult
 from actionlib_msgs.msg import GoalStatus
+from geometry_msgs.msg import Quaternion
 from std_msgs.msg import Bool, String
 
 PI = 3.14
@@ -24,6 +25,8 @@ class JackalNavigator:
                                     self.goalCallback)
         self.task_res_sub = rospy.Subscriber(name + '/task_result', Bool,
                                     self.taskCallback)
+        self.turn_sub = rospy.Subscriber(name + '/turn_goal', Quaternion, self.turnCallback)
+
         self.goals = []
         self.tasks = []
         self.finished_goals = 0
@@ -75,12 +78,14 @@ if __name__ == '__main__':
         speak_2 = Goal2D(-0.5, -4.2, 3, 'map')
         listen_1_noTurn = Goal2D(-0.25, -1.8, -PI/2, 'map')
         listen_2_noTurn = Goal2D(-1.4, -3.7, -PI/2, 'map')
+        speak_1_noTurn = Goal2D(-1.4, -1.6, -PI/2, 'map')
+        speak_2_noTurn = Goal2D(-0.5, -4.2, -PI/2, 'map')
 
         # Jackal acoustic IM goals and tasks
-        jackals[0].addGoals([listen_1_noTurn, listen_2_noTurn])
-        jackals[0].addTasks(['listen', 'listen'])
+        jackals[0].addGoals([listen_1_noTurn, speak_2_noTurn])
+        jackals[0].addTasks(['listen', 'speak'])
         if(len(jackals) > 1):
-            jackals[1].addGoals([speak_1, listen_2])
+            jackals[1].addGoals([speak_1_noTurn, listen_2_noTurn])
             jackals[1].addTasks(['speak', 'listen'])
         
         rospy.loginfo('Pause while goal publisher becomes recognized...')
